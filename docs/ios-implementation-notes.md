@@ -1,4 +1,4 @@
-# Hours — iOS Implementation Notes
+# Clocked — iOS Implementation Notes
 
 Port plan for the interactive mockup (`hour-tracker-mockup.html`). Target device: iPhone 13 (390×844 pt, notch — no Dynamic Island), light appearance.
 

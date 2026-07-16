@@ -1,4 +1,4 @@
-# Hours — external adversarial audit brief
+# Clocked — external adversarial audit brief
 
 You are auditing an iOS codebase you have never seen before. Trust nothing you read in code comments or docs about the implementation's correctness; verify everything against the spec and by running the code yourself.
 
@@ -15,10 +15,10 @@ A personal hour-tracking app (one user, one job) targeting iPhone 13, iOS 17+. S
 ## Repo map
 
 - `Shared/` — SwiftData models, pure math engine (`Engine`/`TimeMath`/`Fmt`), settings, data controller (`TrackerStore`), App Intents, Live Activity attributes/manager, design tokens. Compiled into BOTH the app and the widget targets.
-- `Hours/` — the app: views (Track / Review / Settings tabs + sheets), geofence + notification managers, app model/sheet routing.
-- `HoursWidgets/` — widget extension: interactive systemSmall widget + lock-screen Live Activity.
-- `HoursTests/` — unit tests (hosted in the app target).
-- `project.yml` — XcodeGen manifest; `Hours.xcodeproj` is generated from it (`xcodegen generate`).
+- `Clocked/` — the app: views (Track / Review / Settings tabs + sheets), geofence + notification managers, app model/sheet routing.
+- `ClockedWidgets/` — widget extension: interactive systemSmall widget + lock-screen Live Activity.
+- `ClockedTests/` — unit tests (hosted in the app target).
+- `project.yml` — XcodeGen manifest; `Clocked.xcodeproj` is generated from it (`xcodegen generate`).
 
 ## Toolchain / how to verify
 
@@ -26,9 +26,9 @@ A personal hour-tracking app (one user, one job) targeting iPhone 13, iOS 17+. S
 - Simulator: create/boot an iPhone 13 if none exists:
   `xcrun simctl create "iPhone 13" com.apple.CoreSimulator.SimDeviceType.iPhone-13 <installed-iOS-runtime>`
 - Build + tests:
-  `xcodegen generate && xcodebuild -project Hours.xcodeproj -scheme Hours -destination 'platform=iOS Simulator,name=iPhone 13,arch=arm64' test`
+  `xcodegen generate && xcodebuild -project Clocked.xcodeproj -scheme Clocked -destination 'platform=iOS Simulator,name=iPhone 13,arch=arm64' test`
 - Geofence events can be exercised in the simulator: set the Work location in the app's Settings tab, then move the simulated position with `xcrun simctl location <udid> set <lat>,<lon>` to fire real region enter/exit events.
-- Location permission: `xcrun simctl privacy <udid> grant location-always com.entropic.Hours`. Notification permission can only be granted by tapping the system dialog.
+- Location permission: `xcrun simctl privacy <udid> grant location-always com.osluv.clocked`. Notification permission can only be granted by tapping the system dialog.
 - To exercise flows that need history (suggestions, Review, nudges), log shifts via the app's "＋ Add entry" sheet (up to 60 days back) or clock in/out directly.
 - Screenshots: `xcrun simctl io <udid> screenshot out.png`.
 

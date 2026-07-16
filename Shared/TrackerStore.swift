@@ -28,7 +28,7 @@ final class TrackerStore {
                 container = try ModelContainer(for: schema, configurations: [config])
             } else if let groupURL = FileManager.default
                 .containerURL(forSecurityApplicationGroupIdentifier: AppGroup.id)?
-                .appendingPathComponent("Hours.sqlite") {
+                .appendingPathComponent("Clocked.sqlite") {
                 let config = ModelConfiguration(schema: schema, url: groupURL)
                 container = try ModelContainer(for: schema, configurations: [config])
             } else {

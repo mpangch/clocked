@@ -1,7 +1,10 @@
 # XcodeGen project — run `xcodegen generate` after adding/removing files.
-name: Hours
+# NOTE: the .entitlements files are GENERATED from the `entitlements.properties`
+# blocks below. If Xcode's automatic signing strips an App Group it can't
+# provision, re-run `xcodegen generate` to restore them.
+name: Clocked
 options:
-  bundleIdPrefix: com.entropic
+  bundleIdPrefix: com.osluv
   deploymentTarget:
     iOS: "17.0"
   createIntermediateGroups: true
@@ -12,66 +15,67 @@ settings:
     CURRENT_PROJECT_VERSION: 1
     MARKETING_VERSION: 1.0
     ENABLE_USER_SCRIPT_SANDBOXING: YES
+    DEVELOPMENT_TEAM: 9A74XF5B5H          # The OSLUV Project
 targets:
-  Hours:
+  Clocked:
     type: application
     platform: iOS
-    sources: [Hours, Shared]
+    sources: [Clocked, Shared]
     dependencies:
-      - target: HoursWidgets
+      - target: ClockedWidgets
         embed: true
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.entropic.Hours
+        PRODUCT_BUNDLE_IDENTIFIER: com.osluv.clocked
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     info:
-      path: Hours/Info.plist
+      path: Clocked/Info.plist
       properties:
-        CFBundleDisplayName: Hours
+        CFBundleDisplayName: Clocked
         UILaunchScreen: {}
         NSSupportsLiveActivities: true
         NSLocationWhenInUseUsageDescription: Detects when you arrive at or leave Work to offer clock-in and clock-out prompts.
-        NSLocationAlwaysAndWhenInUseUsageDescription: Background location lets Hours prompt you to clock in when you arrive at Work and clock out after you leave.
+        NSLocationAlwaysAndWhenInUseUsageDescription: Background location lets Clocked prompt you to clock in when you arrive at Work and clock out after you leave.
         UIBackgroundModes: [location]
     entitlements:
-      path: Hours/Hours.entitlements
+      path: Clocked/Clocked.entitlements
       properties:
-        com.apple.security.application-groups: [group.com.entropic.hours]
-  HoursWidgets:
+        com.apple.security.application-groups: [group.com.osluv.clocked]
+  ClockedWidgets:
     type: app-extension
     platform: iOS
-    sources: [HoursWidgets, Shared]
+    sources: [ClockedWidgets, Shared]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.entropic.Hours.HoursWidgets
+        PRODUCT_BUNDLE_IDENTIFIER: com.osluv.clocked.widgets
     info:
-      path: HoursWidgets/Info.plist
+      path: ClockedWidgets/Info.plist
       properties:
-        CFBundleDisplayName: Hours
+        CFBundleDisplayName: Clocked
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     entitlements:
-      path: HoursWidgets/HoursWidgets.entitlements
+      path: ClockedWidgets/ClockedWidgets.entitlements
       properties:
-        com.apple.security.application-groups: [group.com.entropic.hours]
-  HoursTests:
+        com.apple.security.application-groups: [group.com.osluv.clocked]
+  ClockedTests:
     type: bundle.unit-test
     platform: iOS
-    sources: [HoursTests]
+    sources: [ClockedTests]
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
     dependencies:
-      - target: Hours
+      - target: Clocked
 schemes:
-  Hours:
+  Clocked:
     build:
       targets:
-        Hours: all
-        HoursTests: [test]
+        Clocked: all
+        ClockedTests: [test]
     run:
       config: Debug
     test:
       config: Debug
-      targets: [HoursTests]
+      targets: [ClockedTests]

@@ -3,7 +3,7 @@ import Observation
 import WidgetKit
 
 enum AppGroup {
-    static let id = "group.com.entropic.hours"
+    static let id = "group.com.osluv.clocked"
     static var defaults: UserDefaults {
         UserDefaults(suiteName: id) ?? .standard
     }

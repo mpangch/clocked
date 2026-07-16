@@ -16,25 +16,25 @@ final class LiveActivityManager {
         let now = Date.now
         guard let live = store.liveSnapshot, let last = live.segments.last else {
             // Clocked out → end all activities.
-            for activity in Activity<HoursActivityAttributes>.activities {
+            for activity in Activity<ClockedActivityAttributes>.activities {
                 Task { await activity.end(nil, dismissalPolicy: .immediate) }
             }
             return
         }
         let net = Engine.workDuration(live, at: now)
-        let state = HoursActivityAttributes.ContentState(
+        let state = ClockedActivityAttributes.ContentState(
             isOnBreak: last.isBreak,
             clockIn: live.clockIn,
             netAnchor: now.addingTimeInterval(-net),
             breakStart: last.isBreak ? last.start : nil,
             netWorkedAtBreakStart: net
         )
-        if let activity = Activity<HoursActivityAttributes>.activities.first {
+        if let activity = Activity<ClockedActivityAttributes>.activities.first {
             Task { await activity.update(ActivityContent(state: state, staleDate: nil)) }
         } else {
             do {
                 _ = try Activity.request(
-                    attributes: HoursActivityAttributes(),
+                    attributes: ClockedActivityAttributes(),
                     content: ActivityContent(state: state, staleDate: nil)
                 )
             } catch {
