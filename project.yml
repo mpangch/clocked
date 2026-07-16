@@ -1,0 +1,77 @@
+# XcodeGen project — run `xcodegen generate` after adding/removing files.
+name: Hours
+options:
+  bundleIdPrefix: com.entropic
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: 1.0
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+targets:
+  Hours:
+    type: application
+    platform: iOS
+    sources: [Hours, Shared]
+    dependencies:
+      - target: HoursWidgets
+        embed: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.entropic.Hours
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    info:
+      path: Hours/Info.plist
+      properties:
+        CFBundleDisplayName: Hours
+        UILaunchScreen: {}
+        NSSupportsLiveActivities: true
+        NSLocationWhenInUseUsageDescription: Detects when you arrive at or leave Work to offer clock-in and clock-out prompts.
+        NSLocationAlwaysAndWhenInUseUsageDescription: Background location lets Hours prompt you to clock in when you arrive at Work and clock out after you leave.
+        UIBackgroundModes: [location]
+    entitlements:
+      path: Hours/Hours.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.entropic.hours]
+  HoursWidgets:
+    type: app-extension
+    platform: iOS
+    sources: [HoursWidgets, Shared]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.entropic.Hours.HoursWidgets
+    info:
+      path: HoursWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Hours
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: HoursWidgets/HoursWidgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.entropic.hours]
+  HoursTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [HoursTests]
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: Hours
+schemes:
+  Hours:
+    build:
+      targets:
+        Hours: all
+        HoursTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets: [HoursTests]

@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hours — iOS Mockup</title>
+<style>
+  :root{
+    --bg:#F2F2F7; --card:#FFFFFF; --card2:#EFEFF3; --card3:#E3E3E9; --sep:#E4E4EA;
+    --label:#111114; --sec:#6E6E76; --ter:#A6A6AE;
+    --green:#34C759; --amber:#FF9500; --red:#FF3B30; --blue:#007AFF; --teal:#32ADE6;
+    --greenD:#1F8A3B; --amberD:#C25E00; --redD:#D70015;
+    --greenT:rgba(52,199,89,.15); --amberT:rgba(255,149,0,.15); --redT:rgba(255,59,48,.12);
+  }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    background:#E9E9EE; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--label); padding:24px 12px; gap:14px; min-height:100vh;
+  }
+  button{font-family:inherit; border:none; cursor:pointer; background:none; color:inherit;}
+
+  /* ---------- phone frame ---------- */
+  .phone{
+    width:390px; height:844px; background:var(--bg); border-radius:48px; position:relative; overflow:hidden;
+    border:3px solid #2a2a2d; box-shadow:0 0 0 2px #0a0a0a, 0 26px 60px rgba(20,20,35,.3);
+    flex-shrink:0;
+  }
+  @media (max-height:940px){ .phone{ transform:scale(.88); margin:-46px 0; } }
+  .notch{
+    position:absolute; top:0; left:50%; transform:translateX(-50%); z-index:40;
+    width:158px; height:33px; background:#000; border-radius:0 0 20px 20px;
+  }
+  .statusbar{
+    position:absolute; top:0; left:0; right:0; height:54px; z-index:30;
+    display:flex; align-items:center; justify-content:space-between; padding:8px 28px 0 24px;
+    font-size:16px; font-weight:600;
+  }
+  #sbTime{padding:3px 12px; border-radius:15px; font-variant-numeric:tabular-nums; transition:background .3s,color .3s;}
+  #sbTime.work{background:var(--green); color:#fff;}
+  #sbTime.brk{background:var(--amber); color:#fff;}
+  .sbicons{display:flex; gap:7px; align-items:center;}
+  .content{position:absolute; inset:0; padding:64px 0 96px; overflow:hidden;}
+  .view{display:none; height:100%; overflow-y:auto; padding:6px 18px 24px; scrollbar-width:none;}
+  .view::-webkit-scrollbar{display:none;}
+  .view.active{display:block;}
+
+  .vhead{margin:6px 2px 14px;}
+  .vhead h1{font-size:32px; font-weight:800; letter-spacing:.2px;}
+  .vhead .sub{color:var(--sec); font-size:15px; margin-top:2px; font-weight:500;}
+
+  .card{background:var(--card); border-radius:20px; padding:16px; margin-bottom:12px;}
+  .card h3{font-size:13px; font-weight:600; color:var(--sec); text-transform:uppercase; letter-spacing:.6px; margin-bottom:10px;}
+
+  /* ---------- ring ---------- */
+  .ringWrap{position:relative; width:262px; height:262px; margin:2px auto 10px;}
+  .ringWrap svg{transform:rotate(-90deg);}
+  .ringCenter{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; border-radius:50%;}
+  .ringCenter .big{font-size:44px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-.5px;}
+  .ringCenter .mid{font-size:15px; color:var(--sec); margin-top:4px; font-weight:500;}
+  .ringCenter .tag{font-size:12px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; margin-bottom:6px;}
+  .ringBtn{cursor:pointer;}
+  .ringBtn:active{opacity:.75;}
+
+  .btnRow{display:flex; gap:10px; margin:2px 0 14px;}
+  .btn{
+    flex:1; padding:15px 10px; border-radius:16px; font-size:16px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; gap:8px; transition:transform .06s;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn.green{background:var(--greenT); color:var(--greenD);}
+  .btn.amber{background:var(--amberT); color:var(--amberD);}
+  .btn.red{background:var(--redT); color:var(--redD);}
+  .btn.solid{background:var(--green); color:#fff;}
+  .btn.gray{background:var(--card2); color:var(--label);}
+
+  /* ---------- nudge banner ---------- */
+  .nudge{
+    background:var(--amberT); border:1px solid rgba(255,159,10,.35); border-radius:16px;
+    padding:12px 14px; margin-bottom:12px; display:flex; align-items:center; gap:10px; font-size:14px;
+  }
+  .nudge b{color:var(--amberD);}
+  .nudge .spacer{flex:1;}
+  .nudge button{font-weight:700; font-size:14px; padding:7px 12px; border-radius:10px;}
+  .nudge .go{background:var(--amber); color:#fff;}
+  .nudge .dis{color:var(--sec);}
+  .hidden{display:none !important;}
+
+  /* ---------- plan card ---------- */
+  .suggest{
+    background:var(--card2); border-radius:14px; padding:11px 12px; font-size:13.5px; color:var(--sec);
+    display:flex; align-items:center; gap:10px; margin-bottom:12px; line-height:1.35;
+  }
+  .suggest .use{background:var(--green); color:#fff; font-weight:700; font-size:13px; padding:7px 13px; border-radius:10px; flex-shrink:0;}
+  .stepRow{display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:.5px solid var(--sep);}
+  .stepRow:last-child{border-bottom:none;}
+  .stepRow .lbl{font-size:15px; font-weight:500;}
+  .stepRow .lbl small{display:block; color:var(--ter); font-size:12px; font-weight:400; margin-top:1px;}
+  .stepper{display:flex; align-items:center; gap:0; background:var(--card2); border-radius:10px; overflow:hidden;}
+  .stepper button{width:38px; height:34px; font-size:20px; font-weight:600; color:var(--label); background:var(--card2);}
+  .stepper button:active{background:var(--card3);}
+  .stepper .val{min-width:74px; text-align:center; font-size:14.5px; font-weight:700; font-variant-numeric:tabular-nums;}
+  .planNote{color:var(--ter); font-size:12.5px; margin-top:10px; text-align:center;}
+
+  .chipRow{display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px;}
+  .chip{background:var(--card); border-radius:12px; padding:8px 12px; font-size:13px; color:var(--sec); font-weight:600;}
+  .chip b{color:var(--label);}
+
+  /* ---------- progress bars ---------- */
+  .pbar{height:9px; background:var(--card2); border-radius:6px; overflow:hidden; margin-top:9px;}
+  .pbar > div{height:100%; background:var(--green); border-radius:6px; transition:width .4s;}
+  .goalline{display:flex; justify-content:space-between; align-items:baseline; font-size:14px; margin-top:2px;}
+  .goalline .big{font-size:22px; font-weight:800; font-variant-numeric:tabular-nums;}
+  .goalline .need{color:var(--sec); font-weight:600; font-size:13.5px; text-align:right;}
+  .goalline .need b{color:var(--amberD);}
+  .goalline .need.met b{color:var(--greenD);}
+
+  /* ---------- review ---------- */
+  .seg{display:flex; background:#E3E3E9; border-radius:11px; padding:2px; margin-bottom:12px;}
+  .seg button{flex:1; padding:8px 0; border-radius:9px; font-size:13.5px; font-weight:600; color:var(--sec);}
+  .seg button.on{background:#fff; color:var(--label); box-shadow:0 1px 4px rgba(0,0,0,.14);}
+  .periodNav{display:flex; align-items:center; justify-content:space-between; margin:2px 4px 12px;}
+  .periodNav .plabel{font-size:16px; font-weight:700;}
+  .periodNav .psub{font-size:12.5px; color:var(--sec); font-weight:500; margin-top:1px;}
+  .periodNav button{
+    width:34px; height:34px; border-radius:50%; background:var(--card); color:var(--blue);
+    font-size:19px; font-weight:700; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 1px 4px rgba(0,0,0,.08);
+  }
+  .periodNav button:disabled{opacity:.3;}
+  .statRow{display:flex; gap:10px; margin-bottom:12px;}
+  .stat{flex:1; background:var(--card); border-radius:16px; padding:12px 14px;}
+  .stat .n{font-size:21px; font-weight:800; font-variant-numeric:tabular-nums;}
+  .stat .l{font-size:11.5px; color:var(--sec); font-weight:600; text-transform:uppercase; letter-spacing:.4px; margin-top:3px;}
+
+  .chart{display:flex; align-items:flex-end; gap:6px; height:132px; padding-top:6px;}
+  .chart .col{flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end;}
+  .chart .bar{width:100%; max-width:34px; border-radius:6px 6px 3px 3px; background:var(--green); min-height:2px; position:relative;}
+  .chart .bar.brk{background:var(--amber); opacity:.85; border-radius:3px;}
+  .chart .bar.today{outline:2px solid rgba(60,60,75,.45); outline-offset:1px;}
+  .chart .bwrap{width:100%; max-width:34px; display:flex; flex-direction:column-reverse; justify-content:flex-start; flex:1;}
+  .chart .cl{font-size:10.5px; color:var(--sec); font-weight:600; white-space:nowrap;}
+  .chart .cv{font-size:10px; color:var(--ter); font-weight:600; font-variant-numeric:tabular-nums;}
+  .legend{display:flex; gap:14px; margin-top:10px; font-size:11.5px; color:var(--sec); font-weight:500;}
+  .legend i{display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:5px;}
+
+  .dayrow{
+    background:var(--card); border-radius:16px; padding:13px 15px; margin-bottom:8px;
+    display:flex; align-items:center; gap:12px; cursor:pointer;
+  }
+  .dayrow:active{background:var(--card2);}
+  .dayrow .dcol{flex:1;}
+  .dayrow .dname{font-size:15px; font-weight:700;}
+  .dayrow .dsub{font-size:12.5px; color:var(--sec); margin-top:2px;}
+  .dayrow .dhrs{font-size:17px; font-weight:800; font-variant-numeric:tabular-nums;}
+  .dayrow .dbrk{font-size:11.5px; color:var(--amberD); text-align:right; margin-top:1px; font-weight:600;}
+  .dayrow .chev{color:var(--ter); font-size:17px;}
+
+  /* ---------- widgets tab ---------- */
+  .wsec{margin-bottom:6px;}
+  .wcap{font-size:12px; color:var(--ter); margin:8px 2px 18px; line-height:1.45;}
+  .lockwrap{
+    background:linear-gradient(160deg,#93ACD8,#5E7AAE); border-radius:22px; padding:18px 16px 16px; margin-bottom:6px;
+  }
+  .locktime{text-align:center; font-size:13px; font-weight:600; color:rgba(255,255,255,.95); margin-bottom:10px; letter-spacing:.4px; text-shadow:0 1px 5px rgba(20,35,70,.4);}
+  .la{
+    background:rgba(252,252,254,.93); border-radius:22px; padding:14px; backdrop-filter:blur(10px); box-shadow:0 6px 22px rgba(25,40,80,.22);
+  }
+  .la .top{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+  .la .appic{width:30px; height:30px; border-radius:8px; background:var(--green); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; color:#fff; font-weight:800;}
+  .la .st{font-size:12px; font-weight:700; letter-spacing:.8px; text-transform:uppercase;}
+  .la .tm{font-size:26px; font-weight:800; font-variant-numeric:tabular-nums; margin-left:auto;}
+  .la .btns{display:flex; gap:8px;}
+  .la .btns button{flex:1; padding:11px 0; border-radius:13px; font-size:14px; font-weight:700;}
+  .homewrap{background:linear-gradient(160deg,#DDD1F0,#AC9BD6); border-radius:22px; padding:20px 16px; margin-bottom:6px; display:flex; justify-content:center;}
+  .hw{
+    background:rgba(255,255,255,.96); border-radius:26px; padding:13px 14px; width:172px; height:172px;
+    display:flex; flex-direction:column; box-shadow:0 8px 24px rgba(60,50,100,.25);
+  }
+  .hw .row1{display:flex; align-items:baseline; justify-content:space-between;}
+  .hw .t{font-size:10.5px; font-weight:700; color:var(--sec); text-transform:uppercase; letter-spacing:.6px;}
+  .hw .big{font-size:21px; font-weight:800; font-variant-numeric:tabular-nums; margin:1px 0 0;}
+  .hw .sub{font-size:10.5px; color:var(--sec); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .hw .btns{display:flex; gap:6px; margin-top:auto;}
+  .hw .btns button{flex:1; padding:8px 0; border-radius:11px; font-size:12px; font-weight:700;}
+  .hw .mini{margin-top:8px;}
+  .hw .mini .pbar{margin-top:4px; height:5px;}
+  .hw .mini .lbl{font-size:10px; color:var(--ter); font-weight:600; display:flex; justify-content:space-between;}
+
+  /* ---------- tab bar ---------- */
+  .tabbar{
+    position:absolute; bottom:0; left:0; right:0; height:88px; z-index:35;
+    background:rgba(250,250,252,.92); backdrop-filter:blur(18px); border-top:.5px solid var(--sep);
+    display:flex; padding:9px 10px 22px;
+  }
+  .tabbar button{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--ter); font-size:10.5px; font-weight:600;}
+  .tabbar button.on{color:var(--green);}
+  .tabbar svg{width:26px; height:26px;}
+  .homedot{position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:135px; height:5px; border-radius:3px; background:#000; opacity:.8; z-index:36;}
+
+  /* ---------- sheet ---------- */
+  .backdrop{position:absolute; inset:0; background:rgba(0,0,0,.4); z-index:50; display:flex; align-items:flex-end;}
+  .sheet{
+    background:#FAFAFC; width:100%; border-radius:28px 28px 0 0; padding:14px 18px 34px;
+    max-height:78%; overflow-y:auto; animation:up .25s ease; box-shadow:0 -8px 30px rgba(0,0,0,.15);
+  }
+  @keyframes up{from{transform:translateY(40px); opacity:0;} to{transform:none; opacity:1;}}
+  .grab{width:38px; height:5px; border-radius:3px; background:var(--card3); margin:0 auto 14px;}
+  .sheet h2{font-size:20px; font-weight:800; margin-bottom:4px;}
+  .sheet .ssub{color:var(--sec); font-size:14px; margin-bottom:14px;}
+  .sumRow{display:flex; justify-content:space-between; padding:11px 2px; border-bottom:.5px solid var(--sep); font-size:15px;}
+  .sumRow:last-of-type{border-bottom:none;}
+  .sumRow .k{color:var(--sec);}
+  .sumRow .v{font-weight:700; font-variant-numeric:tabular-nums;}
+  .timeline{display:flex; height:26px; border-radius:8px; overflow:hidden; margin:12px 0 6px; background:var(--card2);}
+  .timeline div{height:100%;}
+  .tl-w{background:var(--green);}
+  .tl-b{background:var(--amber);}
+  .tlcap{display:flex; justify-content:space-between; font-size:11px; color:var(--ter); font-weight:600; margin-bottom:10px;}
+
+  /* ---------- demo bar ---------- */
+  .demobar{display:flex; align-items:center; gap:10px; color:#6f6f77; font-size:13px; flex-wrap:wrap; justify-content:center;}
+  .demobar button{background:#fff; border:1px solid #d9d9e0; color:#3a3a40; padding:7px 13px; border-radius:10px; font-size:13px; font-weight:600; box-shadow:0 1px 3px rgba(0,0,0,.06);}
+  .demobar button:active{background:#efeff4;}
+
+  /* ---------- small buttons, switch, push notification, csv ---------- */
+  .minib{background:rgba(0,122,255,.12); color:var(--blue); font-weight:700; font-size:12.5px; padding:7px 11px; border-radius:10px;}
+  .minib:active{background:rgba(0,122,255,.22);}
+  .switch{width:51px; height:31px; border-radius:16px; background:#E3E3E9; display:inline-flex; align-items:center; padding:2px; cursor:pointer; transition:background .2s; flex-shrink:0;}
+  .switch.on{background:var(--green);}
+  .switch .knob{width:27px; height:27px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.3); transition:transform .2s;}
+  .switch.on .knob{transform:translateX(20px);}
+  .push{
+    position:absolute; top:58px; left:12px; right:12px; z-index:60;
+    background:rgba(252,252,254,.97); border-radius:18px; padding:12px 14px;
+    box-shadow:0 12px 34px rgba(0,0,0,.28); display:flex; gap:11px; align-items:flex-start;
+    animation:drop .3s ease;
+  }
+  @keyframes drop{from{transform:translateY(-16px); opacity:0;} to{transform:none; opacity:1;}}
+  .push .pico{width:34px; height:34px; border-radius:9px; background:var(--green); color:#fff; font-weight:800; font-size:17px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .push .ptitle{font-size:13px; font-weight:700;}
+  .push .pbody{font-size:13px; color:var(--sec); margin-top:1px; line-height:1.35;}
+  .push .pactions{display:flex; gap:8px; margin-top:9px;}
+  .push .pbtn{padding:7px 13px; border-radius:9px; background:var(--card2); font-weight:700; font-size:13px;}
+  .push .pbtn.go{background:var(--green); color:#fff;}
+  .csvbox{
+    width:100%; height:150px; background:var(--card2); border:none; border-radius:12px; padding:10px;
+    font-family:ui-monospace,Menlo,Consolas,monospace; font-size:11px; color:var(--label); resize:none; margin:4px 0 12px;
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="statusbar">
+    <span id="sbTime">9:41</span>
+    <span class="sbicons">
+      <svg width="19" height="12" viewBox="0 0 19 12" fill="#000"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="#000"><path d="M8.5 12 L11 9.2 A4 4 0 0 0 6 9.2 Z"/><path d="M3.6 6.7 A7.2 7.2 0 0 1 13.4 6.7 L11.8 8.4 A5 5 0 0 0 5.2 8.4 Z" opacity=".85"/><path d="M.8 3.8 A11 11 0 0 1 16.2 3.8 L14.6 5.5 A8.8 8.8 0 0 0 2.4 5.5 Z" opacity=".65"/></svg>
+      <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="22" height="12" rx="4" fill="none" stroke="#000" stroke-opacity=".4"/><rect x="2" y="2" width="15" height="9" rx="2.5" fill="#000"/><path d="M24.5 4.5 v4 a2.2 2.2 0 0 0 0 -4z" fill="#000" fill-opacity=".4"/></svg>
+    </span>
+  </div>
+
+  <div class="content">
+    <!-- ============ TRACK ============ -->
+    <section id="view-track" class="view active">
+      <header class="vhead">
+        <h1>Hours</h1>
+        <div class="sub" id="todayDate"></div>
+      </header>
+      <div id="nudge" class="nudge hidden"></div>
+      <div class="ringWrap" id="ringWrap">
+        <svg width="262" height="262" viewBox="0 0 262 262">
+          <circle cx="131" cy="131" r="118" fill="none" stroke="#E3E3E8" stroke-width="15"/>
+          <circle id="ringProg" cx="131" cy="131" r="118" fill="none" stroke="#30d158" stroke-width="15"
+                  stroke-linecap="round" stroke-dasharray="741.4" stroke-dashoffset="741.4"/>
+        </svg>
+        <div class="ringCenter" id="ringCenter"></div>
+      </div>
+      <div class="btnRow" id="trackButtons"></div>
+      <div class="chipRow" id="shiftChips"></div>
+      <div class="card" id="planCard"></div>
+      <div class="card" id="weekCardTrack"></div>
+      <div class="card" id="geoCard"></div>
+    </section>
+
+    <!-- ============ REVIEW ============ -->
+    <section id="view-review" class="view">
+      <header class="vhead"><h1>Review</h1></header>
+      <div class="seg" id="segMode">
+        <button data-m="w" class="on">Week</button>
+        <button data-m="b">2 Weeks</button>
+        <button data-m="m">Month</button>
+      </div>
+      <div class="periodNav">
+        <button id="pPrev" onclick="revNav(-1)">‹</button>
+        <div style="text-align:center">
+          <div class="plabel" id="pLabel"></div>
+          <div class="psub" id="pSub"></div>
+        </div>
+        <button id="pNext" onclick="revNav(1)">›</button>
+      </div>
+      <div class="statRow" id="revStats"></div>
+      <div class="card" id="goalProgressCard"></div>
+      <div class="card">
+        <h3 id="chartTitle">Hours per day</h3>
+        <div class="chart" id="chart"></div>
+        <div class="legend"><span><i style="background:var(--green)"></i>Worked</span><span><i style="background:var(--amber)"></i>Unpaid break</span></div>
+      </div>
+      <div class="card" id="goalCard"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin:16px 4px 10px;">
+        <h3 style="font-size:13px;font-weight:600;color:var(--sec);text-transform:uppercase;letter-spacing:.6px;flex:1;">Days</h3>
+        <button class="minib" onclick="openAddEntry()">＋ Add entry</button>
+        <button class="minib" onclick="exportCSV()">Export CSV</button>
+      </div>
+      <div id="dayList"></div>
+    </section>
+
+    <!-- ============ WIDGETS ============ -->
+    <section id="view-widgets" class="view">
+      <header class="vhead">
+        <h1>Widgets</h1>
+        <div class="sub">Live previews — buttons work</div>
+      </header>
+      <div class="wsec">
+        <div class="card" style="background:none;padding:0;">
+          <h3 style="margin:0 2px 8px;">Lock screen · Live Activity</h3>
+          <div class="lockwrap">
+            <div class="locktime" id="lockDate"></div>
+            <div class="la">
+              <div class="top">
+                <div class="appic">H</div>
+                <div>
+                  <div class="st" id="laState"></div>
+                  <div style="font-size:11.5px;color:var(--sec);margin-top:1px;" id="laSub"></div>
+                </div>
+                <div class="tm" id="laTimer">0:00</div>
+              </div>
+              <div class="btns" id="laBtns"></div>
+            </div>
+          </div>
+          <div class="wcap">iOS: lock-screen Live Activity via ActivityKit, buttons via App Intents. iPhone 13 has no Dynamic Island — while tracking, the status bar shows a green time pill instead (see top of screen).</div>
+        </div>
+        <div class="card" style="background:none;padding:0;">
+          <h3 style="margin:0 2px 8px;">Home screen · small widget (square)</h3>
+          <div class="homewrap">
+            <div class="hw">
+              <div class="row1">
+                <span class="t">Hours</span>
+                <span class="sub" id="hwState"></span>
+              </div>
+              <div class="big" id="hwTimer">0h 00m</div>
+              <div class="sub" id="hwSub"></div>
+              <div class="btns" id="hwBtns"></div>
+              <div class="mini">
+                <div class="lbl"><span>This week</span><span id="hwWeekLbl"></span></div>
+                <div class="pbar"><div id="hwWeekBar" style="width:0%"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="wcap">iOS: small square interactive widget (WidgetKit + App Intents, iOS 17+) — Start / Break / Stop without opening the app.</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <nav class="tabbar">
+    <button id="tab-track" class="on" onclick="switchTab('track')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2" stroke-linecap="round"/></svg>
+      Track
+    </button>
+    <button id="tab-review" onclick="switchTab('review')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>
+      Review
+    </button>
+    <button id="tab-widgets" class="" onclick="switchTab('widgets')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="2.5"/><rect x="13" y="3" width="8" height="8" rx="2.5"/><rect x="3" y="13" width="8" height="8" rx="2.5"/><rect x="13" y="13" width="8" height="8" rx="2.5"/></svg>
+      Widgets
+    </button>
+  </nav>
+  <div class="homedot"></div>
+
+  <div class="push hidden" id="push"></div>
+
+  <div class="backdrop hidden" id="backdrop" onclick="if(event.target===this) closeSheet()">
+    <div class="sheet" id="sheet"></div>
+  </div>
+</div>
+
+<div class="demobar">
+  <span>Demo controls:</span>
+  <button onclick="demoSkip(30)">⏩ +30 min</button>
+  <button onclick="demoSkip(120)">⏩ +2 h</button>
+  <button onclick="simArrive()">Arrive at work</button>
+  <button onclick="simLeave()">Leave work</button>
+  <button onclick="location.reload()">Reset</button>
+  <span style="width:100%;text-align:center;font-size:11.5px;color:#5a5a62;">Interactive mockup with 4 weeks of sample history. Data resets on reload.</span>
+</div>
+
+<script>
+"use strict";
+/* ================= time & utils ================= */
+const MIN = 60000, HOUR = 3600000;
+let demoOffset = 0;
+const now = () => new Date(Date.now() + demoOffset);
+const pad = n => String(n).padStart(2, "0");
+const dkey = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+const startOfDay = d => { const x = new Date(d); x.setHours(0,0,0,0); return x; };
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const monday = d => { const x = startOfDay(d); const wd = (x.getDay() + 6) % 7; return addDays(x, -wd); };
+const fmtTime = t => { const d = new Date(t); let h = d.getHours(), m = d.getMinutes(); const ap = h >= 12 ? "PM" : "AM"; h = h % 12 || 12; return h + ":" + pad(m) + " " + ap; };
+const fmtDur = ms => { ms = Math.max(0, ms); const t = Math.round(ms / MIN); const h = Math.floor(t / 60), m = t % 60; return h ? h + "h " + m + "m" : m + "m"; };
+const fmtHM = min => { const h = Math.floor(min / 60), m = min % 60; return h + "h " + pad(m) + "m"; };
+const fmtTimer = ms => { ms = Math.max(0, ms); const s = Math.floor(ms / 1000); return Math.floor(s / 3600) + ":" + pad(Math.floor(s / 60) % 60) + ":" + pad(s % 60); };
+const fmtH1 = ms => (ms / HOUR).toFixed(1).replace(/\.0$/, "") + "h";
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const DOWS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const fmtDateShort = d => MONTHS[d.getMonth()] + " " + d.getDate();
+const el = id => document.getElementById(id);
+const upd = (id, v) => { const e = el(id); if (e && e.textContent !== v) e.textContent = v; };
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const rng = mulberry32(42);
+const rnd = (a, b) => a + rng() * (b - a);
+
+/* ================= state ================= */
+let goalMin = 32.5 * 60;              // weekly goal, minutes
+let history = [];                     // completed sessions {in,out,segs:[{t:'w'|'b',s,e}]}
+let live = null;                      // active session {in, segs:[... last seg e:null]}
+let plan = null;                      // committed plan for current shift
+let planDraft = { workMin: 7 * 60, breakCount: 1, breakMin: 60 };
+let nudgeDismissed = false;
+let rev = { mode: "w", off: 0 };
+let geo = { enabled: true, thresholdMin: 15, leftAt: null, prompted: false };
+let addDraft = { dayOff: -1, inMin: 11 * 60, outMin: 18 * 60, breakMin: 60 };
+let geoOutTs = 0;
+let lastCSV = "";
+let pushTimer = null;
+
+/* ================= seed 4 weeks of history ================= */
+(function seed(){
+  const today = startOfDay(now());
+  for (let i = 28; i >= 1; i--){
+    const d = addDays(today, -i);
+    const dow = d.getDay();
+    if (dow === 0 || dow === 6) continue;
+    const start = d.getTime() + 11 * HOUR + rnd(-12, 12) * MIN;
+    const breaks = [];
+    if (dow === 2 || dow === 4){            // Tue/Thu: ~1h therapy block ~2pm
+      breaks.push({ off: 3 * 60 + rnd(-15, 15), dur: 55 + rnd(0, 10) });
+    } else if (rng() < 0.45){               // occasional short coffee break
+      breaks.push({ off: 2.5 * 60 + rnd(-25, 25), dur: 12 + rnd(0, 10) });
+    }
+    const netMin = 6 * 60 + 45 + rnd(-35, 25);
+    const segs = []; let cur = start, workLeft = netMin * MIN;
+    for (const b of breaks){
+      const bs = start + b.off * MIN;
+      segs.push({ t: "w", s: cur, e: bs }); workLeft -= (bs - cur);
+      const be = bs + b.dur * MIN;
+      segs.push({ t: "b", s: bs, e: be }); cur = be;
+    }
+    segs.push({ t: "w", s: cur, e: cur + workLeft });
+    history.push({ in: start, out: cur + workLeft, segs });
+  }
+})();
+
+/* ================= session math ================= */
+const segMs = (s, at) => Math.max(0, (s.e == null ? at : s.e) - s.s);
+const sumSegs = (sess, type, at) => sess.segs.reduce((a, s) => a + (s.t === type ? segMs(s, at) : 0), 0);
+function sessionsOn(key, at){
+  const out = history.filter(s => dkey(new Date(s.in)) === key);
+  if (live && dkey(new Date(live.in)) === key) out.push(live);
+  return out;
+}
+function dayTotals(key, at){
+  let w = 0, b = 0, first = null, last = null, n = 0;
+  for (const s of sessionsOn(key, at)){
+    w += sumSegs(s, "w", at); b += sumSegs(s, "b", at); n++;
+    if (first === null || s.in < first) first = s.in;
+    const end = s.out || at; if (last === null || end > last) last = end;
+  }
+  return { w, b, first, last, n };
+}
+function rangeTotals(from, to, at){          // [from, to) Dates
+  let w = 0, b = 0, days = 0;
+  for (let d = new Date(from); d < to; d = addDays(d, 1)){
+    const t = dayTotals(dkey(d), at);
+    w += t.w; b += t.b; if (t.w > 0) days++;
+  }
+  return { w, b, days };
+}
+const state = () => !live ? "out" : (live.segs[live.segs.length - 1].t === "b" ? "break" : "work");
+const liveNet = at => live ? sumSegs(live, "w", at) : 0;
+const liveBreak = at => live ? sumSegs(live, "b", at) : 0;
+const liveBreakCount = () => live ? live.segs.filter(s => s.t === "b").length : 0;
+
+/* ================= learned behavior ================= */
+function statsFor(dow){
+  const ss = history.filter(s => new Date(s.in).getDay() === dow);
+  if (!ss.length) return null;
+  let net = 0, brk = 0, cnt = 0, startMin = 0, bStart = 0, bStartN = 0;
+  for (const s of ss){
+    net += sumSegs(s, "w"); brk += sumSegs(s, "b");
+    const bs = s.segs.filter(x => x.t === "b");
+    cnt += bs.length;
+    const d = new Date(s.in); startMin += d.getHours() * 60 + d.getMinutes();
+    if (bs.length){ const bd = new Date(bs[0].s); bStart += bd.getHours() * 60 + bd.getMinutes(); bStartN++; }
+  }
+  const n = ss.length;
+  return {
+    n, avgNetMin: Math.round(net / n / MIN), avgBreakMin: Math.round(brk / n / MIN),
+    breakCount: Math.round(cnt / n), breakFreq: cnt / n,
+    avgStartMin: Math.round(startMin / n),
+    typBreakStartMin: bStartN ? Math.round(bStart / bStartN) : null,
+    typBreakDurMin: cnt ? Math.round(brk / n / MIN / Math.max(1, Math.round(cnt / n))) : 0
+  };
+}
+const round5 = m => Math.round(m / 5) * 5;
+const minToClock = m => { let h = Math.floor(m / 60); const ap = h >= 12 ? "PM" : "AM"; return (h % 12 || 12) + ":" + pad(Math.round(m % 60)) + " " + ap; };
+function suggestionText(st, dow){
+  if (!st) return null;
+  let t = DOWS[dow] + "s you usually work <b>" + fmtHM(round5(st.avgNetMin)) + "</b>";
+  if (st.breakCount > 0 && st.typBreakStartMin != null){
+    t += ", with " + (st.breakCount === 1 ? "a" : st.breakCount) + " ~<b>" + fmtDur(round5(st.typBreakDurMin) * MIN) + "</b> break around <b>" + minToClock(st.typBreakStartMin) + "</b>";
+  } else if (st.breakFreq < 0.3){
+    t += ", usually without breaks";
+  }
+  return t + ".";
+}
+
+/* ================= actions ================= */
+window.clockIn = function(){
+  const t = now().getTime();
+  plan = { ...planDraft };
+  live = { in: t, segs: [{ t: "w", s: t, e: null }] };
+  nudgeDismissed = false;
+  geo.leftAt = null; geo.prompted = false;
+  renderAll();
+};
+window.startBreak = function(){
+  if (state() !== "work") return;
+  const t = now().getTime();
+  live.segs[live.segs.length - 1].e = t;
+  live.segs.push({ t: "b", s: t, e: null });
+  nudgeDismissed = true;
+  renderAll();
+};
+window.resumeWork = function(){
+  if (state() !== "break") return;
+  const t = now().getTime();
+  live.segs[live.segs.length - 1].e = t;
+  live.segs.push({ t: "w", s: t, e: null });
+  renderAll();
+};
+window.requestClockOut = function(){
+  const at = now().getTime();
+  const wk = weekWorked(at);
+  openSheet(`
+    <h2>Clock out?</h2>
+    <div class="ssub">${DOWS[now().getDay()]}, ${fmtDateShort(now())}</div>
+    <div class="sumRow"><span class="k">Clocked in</span><span class="v">${fmtTime(live.in)}</span></div>
+    <div class="sumRow"><span class="k">Clocking out</span><span class="v">${fmtTime(at)}</span></div>
+    <div class="sumRow"><span class="k">Unpaid breaks</span><span class="v">${liveBreakCount()} · ${fmtDur(liveBreak(at))}</span></div>
+    <div class="sumRow"><span class="k">Hours worked</span><span class="v" style="color:var(--greenD)">${fmtDur(liveNet(at))}</span></div>
+    <div class="sumRow"><span class="k">Week after this</span><span class="v">${fmtDur(wk)} / ${fmtHM(goalMin)}</span></div>
+    <div class="btnRow" style="margin-top:16px">
+      <button class="btn gray" onclick="closeSheet()">Cancel</button>
+      <button class="btn red" onclick="confirmClockOut()" style="background:var(--red);color:#fff">Clock Out</button>
+    </div>`);
+};
+window.confirmClockOut = function(){
+  const t = now().getTime();
+  live.segs[live.segs.length - 1].e = t;
+  live.out = t;
+  history.push(live);
+  history.sort((a, b) => a.in - b.in);
+  live = null; plan = null; nudgeDismissed = false;
+  geo.leftAt = null; geo.prompted = false;
+  closeSheet(); renderAll();
+};
+window.dismissNudge = function(){ nudgeDismissed = true; renderTrack(); };
+window.usePlanSuggestion = function(){
+  const st = statsFor(now().getDay());
+  if (!st) return;
+  planDraft = {
+    workMin: round5(st.avgNetMin),
+    breakCount: st.breakCount,
+    breakMin: st.breakCount ? round5(st.avgBreakMin) : 0
+  };
+  renderTrack();
+};
+window.stepPlan = function(field, dir){
+  if (field === "workMin") planDraft.workMin = Math.min(14 * 60, Math.max(30, planDraft.workMin + dir * 15));
+  if (field === "breakCount"){ planDraft.breakCount = Math.min(4, Math.max(0, planDraft.breakCount + dir)); if (planDraft.breakCount === 0) planDraft.breakMin = 0; else if (!planDraft.breakMin) planDraft.breakMin = 30; }
+  if (field === "breakMin") planDraft.breakMin = Math.min(4 * 60, Math.max(0, planDraft.breakMin + dir * 15));
+  renderTrack();
+};
+window.stepGoal = function(dir){
+  goalMin = Math.min(80 * 60, Math.max(5 * 60, goalMin + dir * 30));
+  renderReview(); renderTrack(); renderWidgets();
+};
+/* ---- manual add entry ---- */
+window.openAddEntry = function(){ renderAddSheet(); };
+function renderAddSheet(){
+  const d = addDays(startOfDay(now()), addDraft.dayOff);
+  const netMin = Math.max(0, addDraft.outMin - addDraft.inMin - addDraft.breakMin);
+  openSheet(`<h2>Add entry</h2><div class="ssub">Manually log a shift you forgot to track</div>
+    <div class="stepRow"><span class="lbl">Date</span>
+      <span class="stepper"><button onclick="stepAdd('dayOff',-1)">−</button><span class="val">${addDraft.dayOff === 0 ? "Today" : DOWS[d.getDay()].slice(0, 3) + ", " + fmtDateShort(d)}</span><button onclick="stepAdd('dayOff',1)">+</button></span></div>
+    <div class="stepRow"><span class="lbl">Clock in</span>
+      <span class="stepper"><button onclick="stepAdd('inMin',-1)">−</button><span class="val">${minToClock(addDraft.inMin)}</span><button onclick="stepAdd('inMin',1)">+</button></span></div>
+    <div class="stepRow"><span class="lbl">Clock out</span>
+      <span class="stepper"><button onclick="stepAdd('outMin',-1)">−</button><span class="val">${minToClock(addDraft.outMin)}</span><button onclick="stepAdd('outMin',1)">+</button></span></div>
+    <div class="stepRow"><span class="lbl">Unpaid break<small>inserted mid-shift</small></span>
+      <span class="stepper"><button onclick="stepAdd('breakMin',-1)">−</button><span class="val">${fmtHM(addDraft.breakMin)}</span><button onclick="stepAdd('breakMin',1)">+</button></span></div>
+    <div class="planNote">Net hours: <b>${fmtHM(netMin)}</b></div>
+    <div class="btnRow" style="margin-top:12px">
+      <button class="btn gray" onclick="closeSheet()">Cancel</button>
+      <button class="btn solid" onclick="saveAddEntry()">Save entry</button>
+    </div>`);
+}
+window.stepAdd = function(f, dir){
+  if (f === "dayOff") addDraft.dayOff = Math.min(0, Math.max(-60, addDraft.dayOff + dir));
+  if (f === "inMin") addDraft.inMin = Math.min(addDraft.outMin - 30, Math.max(0, addDraft.inMin + dir * 15));
+  if (f === "outMin") addDraft.outMin = Math.min(24 * 60 - 15, Math.max(addDraft.inMin + 30, addDraft.outMin + dir * 15));
+  if (f === "breakMin") addDraft.breakMin = Math.max(0, addDraft.breakMin + dir * 15);
+  addDraft.breakMin = Math.min(addDraft.breakMin, Math.max(0, addDraft.outMin - addDraft.inMin - 15));
+  renderAddSheet();
+};
+window.saveAddEntry = function(){
+  const base = addDays(startOfDay(now()), addDraft.dayOff).getTime();
+  const inT = base + addDraft.inMin * MIN, outT = base + addDraft.outMin * MIN;
+  const segs = [];
+  if (addDraft.breakMin > 0){
+    const bs = inT + Math.round((addDraft.outMin - addDraft.inMin - addDraft.breakMin) / 2) * MIN;
+    const be = bs + addDraft.breakMin * MIN;
+    segs.push({ t: "w", s: inT, e: bs }, { t: "b", s: bs, e: be }, { t: "w", s: be, e: outT });
+  } else segs.push({ t: "w", s: inT, e: outT });
+  history.push({ in: inT, out: outT, segs });
+  history.sort((a, b) => a.in - b.in);
+  closeSheet(); renderAll();
+};
+
+/* ---- CSV export ---- */
+const fmt24 = t => { const d = new Date(t); return pad(d.getHours()) + ":" + pad(d.getMinutes()); };
+window.exportCSV = function(){
+  const at = now().getTime();
+  const { from, to } = periodRange();
+  const rows = [["date", "clock_in", "clock_out", "break_minutes", "net_hours"]];
+  let tot = 0;
+  for (const s of history){
+    if (s.in < from.getTime() || s.in >= to.getTime()) continue;
+    const w = sumSegs(s, "w", at);
+    tot += w;
+    rows.push([dkey(new Date(s.in)), fmt24(s.in), fmt24(s.out), Math.round(sumSegs(s, "b", at) / MIN), (w / HOUR).toFixed(2)]);
+  }
+  if (live && live.in >= from.getTime() && live.in < to.getTime()){
+    const w = liveNet(at); tot += w;
+    rows.push([dkey(new Date(live.in)), fmt24(live.in), "(active)", Math.round(liveBreak(at) / MIN), (w / HOUR).toFixed(2)]);
+  }
+  const nShifts = rows.length - 1;
+  rows.push(["total", "", "", "", (tot / HOUR).toFixed(2)]);
+  lastCSV = rows.map(r => r.join(",")).join("\n");
+  openSheet(`<h2>Export CSV</h2>
+    <div class="ssub">${fmtDateShort(from)} – ${fmtDateShort(addDays(to, -1))} · ${nShifts} shift${nShifts === 1 ? "" : "s"}</div>
+    <textarea class="csvbox" id="csvBox" readonly>${lastCSV}</textarea>
+    <div class="btnRow">
+      <button class="btn gray" id="copyBtn" onclick="copyCSV()">Copy</button>
+      <button class="btn solid" onclick="downloadCSV()">Download .csv</button>
+    </div>`);
+};
+window.copyCSV = function(){
+  try{
+    if (typeof navigator !== "undefined" && navigator.clipboard) navigator.clipboard.writeText(lastCSV);
+    else { el("csvBox").select(); document.execCommand("copy"); }
+  }catch(e){}
+  el("copyBtn").textContent = "Copied";
+};
+window.downloadCSV = function(){
+  try{
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([lastCSV], { type: "text/csv" }));
+    a.download = "hours-export.csv";
+    document.body.appendChild(a); a.click(); a.remove();
+  }catch(e){ copyCSV(); }
+};
+
+/* ---- geofence (simulated — CoreLocation region monitoring on iOS) ---- */
+function showPush(title, body, actions, sticky){
+  const p = el("push");
+  p.innerHTML = `<div class="pico">H</div><div style="flex:1"><div class="ptitle">${title}</div><div class="pbody">${body}</div>${actions ? `<div class="pactions">${actions}</div>` : ""}</div>`;
+  p.classList.remove("hidden");
+  if (pushTimer) clearTimeout(pushTimer);
+  pushTimer = sticky ? null : setTimeout(hidePush, 7000);
+}
+window.hidePush = function(){
+  el("push").classList.add("hidden");
+  if (pushTimer){ clearTimeout(pushTimer); pushTimer = null; }
+};
+window.toggleGeo = function(){
+  geo.enabled = !geo.enabled;
+  if (!geo.enabled){ geo.leftAt = null; geo.prompted = false; }
+  renderTrack();
+};
+window.stepGeoThresh = function(dir){
+  geo.thresholdMin = Math.min(120, Math.max(5, geo.thresholdMin + dir * 5));
+  renderTrack();
+};
+window.simArrive = function(){
+  geo.leftAt = null; geo.prompted = false;
+  if (!geo.enabled){ showPush("Hours", "You arrived at Work — geofence is off, so no prompt."); renderTrack(); return; }
+  if (live){ showPush("Hours", "Back at Work — still on the clock (" + fmtDur(liveNet(now().getTime())) + " worked)."); renderTrack(); return; }
+  showPush("Hours", "You arrived at Work — clock in?",
+    `<button class="pbtn go" onclick="pushClockIn()">Clock In</button><button class="pbtn" onclick="hidePush()">Not now</button>`, true);
+};
+window.pushClockIn = function(){ hidePush(); clockIn(); switchTab("track"); };
+window.simLeave = function(){
+  if (!geo.enabled){ showPush("Hours", "You left Work — geofence is off, so no prompt."); return; }
+  if (!live){ showPush("Hours", "You left Work — you're not clocked in, nothing to do."); return; }
+  geo.leftAt = now().getTime(); geo.prompted = false;
+  showPush("Hours", "You left Work. Away more than " + geo.thresholdMin + "m and I'll ask if you're done (use ⏩ to fast-forward).");
+  renderTrack();
+};
+window.geoOutSheet = function(){
+  hidePush();
+  if (!live) return;
+  const lastS = live.segs[live.segs.length - 1].s;
+  geoOutTs = Math.max(geo.leftAt || now().getTime(), lastS + 5 * MIN);
+  renderGeoOut();
+};
+window.stepGeoOut = function(dir){
+  const lastS = live.segs[live.segs.length - 1].s;
+  geoOutTs = Math.min(now().getTime(), Math.max(lastS + 5 * MIN, geoOutTs + dir * 5 * MIN));
+  renderGeoOut();
+};
+function renderGeoOut(){
+  openSheet(`<h2>When were you done?</h2>
+    <div class="ssub">You left Work at ${fmtTime(geo.leftAt || now())} — the clock-out will be backdated.</div>
+    <div class="stepRow"><span class="lbl">Finished at<small>5-minute steps</small></span>
+      <span class="stepper"><button onclick="stepGeoOut(-1)">−</button><span class="val">${fmtTime(geoOutTs)}</span><button onclick="stepGeoOut(1)">+</button></span></div>
+    <div class="sumRow"><span class="k">Hours worked</span><span class="v" style="color:var(--greenD)">${fmtDur(liveNet(geoOutTs))}</span></div>
+    <div class="sumRow"><span class="k">Unpaid breaks</span><span class="v">${fmtDur(liveBreak(geoOutTs))}</span></div>
+    <div class="btnRow" style="margin-top:14px">
+      <button class="btn gray" onclick="closeSheet()">Still working</button>
+      <button class="btn red" onclick="confirmGeoOut()" style="background:var(--red);color:#fff">Clock Out</button>
+    </div>`);
+}
+window.confirmGeoOut = function(){
+  const last = live.segs[live.segs.length - 1];
+  last.e = Math.max(geoOutTs, last.s + MIN);
+  live.out = last.e;
+  history.push(live);
+  history.sort((a, b) => a.in - b.in);
+  live = null; plan = null; nudgeDismissed = false;
+  geo.leftAt = null; geo.prompted = false;
+  closeSheet(); renderAll();
+};
+
+window.demoSkip = function(min){ demoOffset += min * MIN; tick(); renderAll(); };
+window.switchTab = function(name){
+  for (const v of ["track", "review", "widgets"]){
+    el("view-" + v).classList.toggle("active", v === name);
+    el("tab-" + v).classList.toggle("on", v === name);
+  }
+  renderAll();
+};
+function openSheet(html){ el("sheet").innerHTML = `<div class="grab"></div>` + html; el("backdrop").classList.remove("hidden"); }
+window.closeSheet = function(){ el("backdrop").classList.add("hidden"); };
+
+/* ================= aggregates for goal ================= */
+function weekWorked(at){
+  const m = monday(now());
+  return rangeTotals(m, addDays(m, 7), at).w;
+}
+function goalNeedHtml(workedMs, goalMs){
+  const diff = goalMs - workedMs;
+  return diff > 0
+    ? `<span class="need">Need <b>${fmtDur(diff)}</b> more to hit goal</span>`
+    : `<span class="need met">Goal met · <b>+${fmtDur(-diff)}</b> over</span>`;
+}
+
+/* ================= render: track ================= */
+const RING_C = 741.4;
+function setRing(p, color){
+  const r = el("ringProg");
+  r.style.strokeDashoffset = RING_C * (1 - Math.min(1, Math.max(0, p)));
+  r.style.stroke = color;
+}
+function plannedWorkMs(){ return (plan ? plan.workMin : (statsFor(now().getDay())?.avgNetMin || 7 * 60)) * MIN; }
+function etaText(at){
+  const remain = plannedWorkMs() - liveNet(at);
+  return remain > 0 ? "done ~" + fmtTime(at + remain) : "planned hours complete";
+}
+function renderTrack(){
+  const at = now().getTime();
+  const st = state();
+  const today = dkey(now());
+  const tt = dayTotals(today, at);
+  upd("todayDate", DOWS[now().getDay()] + ", " + fmtDateShort(now()));
+
+  /* nudge */
+  const learned = statsFor(now().getDay());
+  const nEl = el("nudge");
+  let showNudge = false;
+  if (st === "work" && !nudgeDismissed && learned && learned.typBreakStartMin != null && learned.breakFreq >= 0.5 && liveBreakCount() === 0){
+    const nowMin = now().getHours() * 60 + now().getMinutes();
+    showNudge = nowMin >= learned.typBreakStartMin - 20 && nowMin <= learned.typBreakStartMin + 45;
+  }
+  if (live && at - live.in > 12 * HOUR){
+    nEl.innerHTML = `<span>Forgot to clock out? You've been on the clock <b>${fmtDur(at - live.in)}</b>.</span><span class="spacer"></span><button class="go" onclick="requestClockOut()">Review</button>`;
+    nEl.classList.remove("hidden");
+  } else if (showNudge){
+    nEl.innerHTML = `<span>Break time? You usually step away for <b>~${fmtDur(round5(learned.typBreakDurMin) * MIN)}</b> around <b>${minToClock(learned.typBreakStartMin)}</b>.</span><span class="spacer"></span><button class="dis" onclick="dismissNudge()">Later</button><button class="go" onclick="startBreak()">Break</button>`;
+    nEl.classList.remove("hidden");
+  } else nEl.classList.add("hidden");
+
+  /* ring + center */
+  const rc = el("ringCenter"), rw = el("ringWrap");
+  rw.classList.toggle("ringBtn", st === "out");
+  rw.onclick = st === "out" ? window.clockIn : null;
+  if (st === "out"){
+    setRing(0, "var(--green)");
+    const hint = tt.w > 0
+      ? `Today so far: <b style="color:var(--label)">${fmtDur(tt.w)}</b>`
+      : (learned ? `You usually start ~${minToClock(learned.avgStartMin)}` : "No history yet");
+    rc.innerHTML = `<div class="tag" style="color:var(--greenD)">Ready</div><div class="big" style="font-size:36px">Clock In</div><div class="mid">${hint}</div>`;
+  } else if (st === "work"){
+    setRing(liveNet(at) / plannedWorkMs(), "var(--green)");
+    rc.innerHTML = `<div class="tag" style="color:var(--greenD)">● Working</div><div class="big" id="tTimer">${fmtTimer(liveNet(at))}</div><div class="mid" id="tMid">since ${fmtTime(live.in)} · <span id="tEta">${etaText(at)}</span></div>`;
+  } else {
+    setRing(liveNet(at) / plannedWorkMs(), "var(--amber)");
+    rc.innerHTML = `<div class="tag" style="color:var(--amberD)">Ⅱ On Break</div><div class="big" id="tTimer" style="color:var(--amberD)">${fmtTimer(segMs(live.segs[live.segs.length - 1], at))}</div><div class="mid">unpaid · worked <span id="tNetSoFar">${fmtDur(liveNet(at))}</span> so far</div>`;
+  }
+
+  /* buttons */
+  const b = el("trackButtons");
+  if (st === "out") b.innerHTML = `<button class="btn solid" onclick="clockIn()">Clock In</button>`;
+  else if (st === "work") b.innerHTML = `<button class="btn amber" onclick="startBreak()">Take Break</button><button class="btn red" onclick="requestClockOut()">Clock Out</button>`;
+  else b.innerHTML = `<button class="btn green" onclick="resumeWork()" style="background:var(--green);color:#fff">Resume Work</button><button class="btn red" onclick="requestClockOut()">Clock Out</button>`;
+
+  /* chips */
+  const chips = el("shiftChips");
+  if (live){
+    let c = `<span class="chip">In <b>${fmtTime(live.in)}</b></span><span class="chip">Breaks <b>${liveBreakCount()}</b>${liveBreakCount() ? " · <b>" + fmtDur(liveBreak(at)) + "</b>" : ""}</span>`;
+    if (plan) c += `<span class="chip">Plan <b>${fmtHM(plan.workMin)}</b>${plan.breakCount ? " + <b>" + fmtDur(plan.breakMin * MIN) + "</b> break" : ""}</span>`;
+    if (geo.leftAt) c += `<span class="chip" style="background:var(--amberT);color:var(--amberD)">Away from Work <b style="color:var(--amberD)">${fmtDur(at - geo.leftAt)}</b></span>`;
+    chips.innerHTML = c; chips.classList.remove("hidden");
+  } else chips.classList.add("hidden");
+
+  /* plan card (only when clocked out) */
+  const pc = el("planCard");
+  if (st === "out"){
+    const sug = suggestionText(learned, now().getDay());
+    const finish = at + planDraft.workMin * MIN + planDraft.breakMin * MIN;
+    pc.classList.remove("hidden");
+    pc.innerHTML = `<h3>Today’s plan</h3>
+      ${sug ? `<div class="suggest"><span>${sug}</span><button class="use" onclick="usePlanSuggestion()">Use</button></div>` : ""}
+      <div class="stepRow"><span class="lbl">Shift length<small>hours on the clock</small></span>
+        <span class="stepper"><button onclick="stepPlan('workMin',-1)">−</button><span class="val">${fmtHM(planDraft.workMin)}</span><button onclick="stepPlan('workMin',1)">+</button></span></div>
+      <div class="stepRow"><span class="lbl">Breaks<small>unpaid, won’t clock you out</small></span>
+        <span class="stepper"><button onclick="stepPlan('breakCount',-1)">−</button><span class="val">${planDraft.breakCount}</span><button onclick="stepPlan('breakCount',1)">+</button></span></div>
+      ${planDraft.breakCount ? `<div class="stepRow"><span class="lbl">Break time<small>total across breaks</small></span>
+        <span class="stepper"><button onclick="stepPlan('breakMin',-1)">−</button><span class="val">${fmtHM(planDraft.breakMin)}</span><button onclick="stepPlan('breakMin',1)">+</button></span></div>` : ""}
+      <div class="planNote">Clock in now → finish around <b>${fmtTime(finish)}</b></div>`;
+  } else pc.classList.add("hidden");
+
+  /* week card */
+  const wk = weekWorked(at);
+  el("weekCardTrack").innerHTML = `<h3>This week</h3>
+    <div class="goalline"><span class="big" id="wkWorked">${fmtDur(wk)}</span><span id="wkNeed">${goalNeedHtml(wk, goalMin * MIN)}</span></div>
+    <div class="pbar"><div id="wkBar" style="width:${Math.min(100, wk / (goalMin * MIN) * 100)}%"></div></div>
+    <div style="font-size:12px;color:var(--ter);margin-top:7px;">Goal ${fmtHM(goalMin)} / week — change it in Review</div>`;
+
+  /* location / geofence card */
+  el("geoCard").innerHTML = `<h3>Location · Work</h3>
+    <div class="stepRow"><span class="lbl">Geofence<small>prompts to clock in when you arrive,<br>and to clock out when you leave</small></span>
+      <span class="switch${geo.enabled ? " on" : ""}" onclick="toggleGeo()"><span class="knob"></span></span></div>
+    ${geo.enabled ? `<div class="stepRow"><span class="lbl">Away threshold<small>asks "Are you ready to clock out?"<br>after you've been gone this long</small></span>
+      <span class="stepper"><button onclick="stepGeoThresh(-1)">−</button><span class="val">${geo.thresholdMin}m</span><button onclick="stepGeoThresh(1)">+</button></span></div>` : ""}
+    ${geo.leftAt && live ? `<div class="planNote" style="color:var(--amberD)">Away from Work since ${fmtTime(geo.leftAt)}</div>` : `<div class="planNote">Try "Arrive at work" / "Leave work" under the phone</div>`}`;
+}
+
+/* ================= render: review ================= */
+function periodRange(){
+  const t = startOfDay(now());
+  if (rev.mode === "w"){ const s = addDays(monday(t), rev.off * 7); return { from: s, to: addDays(s, 7) }; }
+  if (rev.mode === "b"){ const s = addDays(monday(t), -7 + rev.off * 14); return { from: s, to: addDays(s, 14) }; }
+  const f = new Date(t.getFullYear(), t.getMonth() + rev.off, 1);
+  return { from: f, to: new Date(t.getFullYear(), t.getMonth() + rev.off + 1, 1) };
+}
+function periodGoalMs(from, to){
+  if (rev.mode === "w") return goalMin * MIN;
+  if (rev.mode === "b") return 2 * goalMin * MIN;
+  const days = Math.round((to - from) / (24 * HOUR));
+  return goalMin * MIN * days / 7;
+}
+window.setRevMode = function(m){ rev.mode = m; rev.off = 0; renderReview(); };
+window.revNav = function(d){ rev.off = Math.min(0, rev.off + d); renderReview(); };
+window.openDay = function(key){
+  const at = now().getTime();
+  const t = dayTotals(key, at);
+  const sess = sessionsOn(key, at).slice().sort((a, b) => a.in - b.in);
+  if (!sess.length) return;
+  const span = Math.max(1, t.last - t.first);
+  let tl = "", prevEnd = null, body = "", si = 0;
+  for (const s of sess) for (const g of s.segs){
+    if (prevEnd != null && g.s > prevEnd) tl += `<div style="width:${(g.s - prevEnd) / span * 100}%"></div>`;
+    tl += `<div class="tl-${g.t}" style="width:${Math.max(0.5, segMs(g, at) / span * 100)}%"></div>`;
+    prevEnd = g.e == null ? at : g.e;
+  }
+  for (const s of sess){
+    si++;
+    const hIdx = history.indexOf(s);
+    const isLive = s === live;
+    body += `<div style="margin:14px 0 2px;font-size:11.5px;font-weight:700;color:var(--ter);text-transform:uppercase;letter-spacing:.5px;">Session ${si}${isLive ? " · active now" : ""}</div>`;
+    if (!isLive) body += `
+      <div class="stepRow"><span class="lbl">Clock in<small>fix in 15m steps</small></span>
+        <span class="stepper"><button onclick="editShift(${hIdx},'in',-1)">−</button><span class="val">${fmtTime(s.in)}</span><button onclick="editShift(${hIdx},'in',1)">+</button></span></div>
+      <div class="stepRow"><span class="lbl">Clock out<small>forgot? adjust it here</small></span>
+        <span class="stepper"><button onclick="editShift(${hIdx},'out',-1)">−</button><span class="val">${fmtTime(s.out)}</span><button onclick="editShift(${hIdx},'out',1)">+</button></span></div>`;
+    for (const g of s.segs){
+      body += `<div class="sumRow"><span class="k">${g.t === "w" ? "Work" : "Break (unpaid)"}</span><span class="v">${fmtTime(g.s)} – ${g.e ? fmtTime(g.e) : "now"} · ${fmtDur(segMs(g, at))}</span></div>`;
+    }
+    if (!isLive) body += `<div style="text-align:right;margin:8px 0 0;"><button class="minib" style="color:var(--redD);background:var(--redT)" onclick="deleteShift(${hIdx})">Delete session</button></div>`;
+  }
+  const d = new Date(key + "T12:00:00");
+  openSheet(`<h2>${DOWS[d.getDay()]}, ${fmtDateShort(d)}</h2>
+    <div class="ssub">${fmtTime(t.first)} – ${dkey(now()) === key && live ? "now" : fmtTime(t.last)}</div>
+    <div class="timeline">${tl}</div>
+    <div class="tlcap"><span>${fmtTime(t.first)}</span><span>${dkey(now()) === key && live ? "now" : fmtTime(t.last)}</span></div>
+    ${body}
+    <div class="sumRow" style="border-top:.5px solid var(--sep);margin-top:10px"><span class="k">Worked</span><span class="v" style="color:var(--greenD)">${fmtDur(t.w)}</span></div>
+    <div class="sumRow"><span class="k">Breaks</span><span class="v" style="color:var(--amberD)">${fmtDur(t.b)}</span></div>
+    <button class="btn gray" style="margin-top:12px;width:100%" onclick="closeSheet()">Done</button>`);
+};
+window.editShift = function(hIdx, field, dir){
+  const s = history[hIdx]; if (!s) return;
+  const d = dir * 15 * MIN;
+  if (field === "in"){
+    const limit = (s.segs[0].e ?? s.out) - 5 * MIN;
+    s.in = Math.min(s.in + d, limit);
+    s.segs[0].s = s.in;
+  } else {
+    const last = s.segs[s.segs.length - 1];
+    s.out = Math.max(s.out + d, last.s + 5 * MIN);
+    last.e = s.out;
+  }
+  renderAll();
+  openDay(dkey(new Date(s.in)));
+};
+window.deleteShift = function(hIdx){
+  const s = history[hIdx]; if (!s) return;
+  const key = dkey(new Date(s.in));
+  history.splice(hIdx, 1);
+  renderAll();
+  if (sessionsOn(key, now().getTime()).length) openDay(key); else closeSheet();
+};
+function renderReview(){
+  const at = now().getTime();
+  for (const b of el("segMode").children) b.classList.toggle("on", b.dataset.m === rev.mode);
+  el("segMode").querySelectorAll("button").forEach(b => b.onclick = () => setRevMode(b.dataset.m));
+  const { from, to } = periodRange();
+  const tot = rangeTotals(from, to, at);
+
+  /* labels */
+  const rangeStr = fmtDateShort(from) + " – " + fmtDateShort(addDays(to, -1));
+  if (rev.mode === "w"){ upd("pLabel", rev.off === 0 ? "This Week" : rangeStr); upd("pSub", rev.off === 0 ? rangeStr : "Week"); }
+  else if (rev.mode === "b"){ upd("pLabel", rangeStr); upd("pSub", rev.off === 0 ? "Current 2-week period" : "2-week period"); }
+  else { upd("pLabel", MONTHS[from.getMonth()] + " " + from.getFullYear()); upd("pSub", rev.off === 0 ? "This month" : "Month"); }
+  el("pNext").disabled = rev.off === 0;
+
+  /* stats */
+  el("revStats").innerHTML = `
+    <div class="stat"><div class="n" style="color:var(--greenD)">${fmtDur(tot.w)}</div><div class="l">Worked</div></div>
+    <div class="stat"><div class="n" style="color:var(--amberD)">${fmtDur(tot.b)}</div><div class="l">Breaks</div></div>
+    <div class="stat"><div class="n">${tot.days ? fmtDur(tot.w / tot.days) : "—"}</div><div class="l">Avg / day</div></div>`;
+
+  /* goal progress */
+  const gms = periodGoalMs(from, to);
+  el("goalProgressCard").innerHTML = `<h3>${rev.mode === "w" ? "Weekly goal" : rev.mode === "b" ? "2-week goal (×2)" : "Monthly goal (pro-rated)"}</h3>
+    <div class="goalline"><span class="big">${fmtDur(tot.w)} <span style="font-size:14px;color:var(--sec);font-weight:600">/ ${fmtDur(gms)}</span></span>${goalNeedHtml(tot.w, gms)}</div>
+    <div class="pbar"><div style="width:${Math.min(100, tot.w / gms * 100)}%"></div></div>`;
+
+  /* chart */
+  const ch = el("chart");
+  const todayKey = dkey(now());
+  let cols = [];
+  if (rev.mode !== "m"){
+    for (let d = new Date(from); d < to; d = addDays(d, 1)){
+      const k = dkey(d), t = dayTotals(k, at);
+      cols.push({ w: t.w, b: t.b, lbl: rev.mode === "w" ? "MTWTFSS"[(d.getDay() + 6) % 7] : String(d.getDate()), today: k === todayKey });
+    }
+    upd("chartTitle", "Hours per day");
+  } else {
+    let ws = monday(from);
+    while (ws < to){
+      const we = addDays(ws, 7);
+      const f2 = ws < from ? from : ws, t2 = we > to ? to : we;
+      const t = rangeTotals(f2, t2, at);
+      cols.push({ w: t.w, b: t.b, lbl: fmtDateShort(f2).replace(/\w+ /, "") + "–" + (addDays(t2, -1).getDate()), today: todayKey >= dkey(f2) && todayKey <= dkey(addDays(t2, -1)) });
+      ws = we;
+    }
+    upd("chartTitle", "Hours per week");
+  }
+  const maxV = Math.max(8 * HOUR, ...cols.map(c => c.w + c.b));
+  const H = 96;
+  ch.innerHTML = cols.map(c => `
+    <div class="col">
+      <div class="bwrap">
+        <div class="bar${c.today ? " today" : ""}" style="height:${Math.max(c.w ? 3 : 1, c.w / maxV * H)}px"></div>
+        ${c.b ? `<div class="bar brk" style="height:${Math.max(2, c.b / maxV * H)}px;margin-bottom:2px"></div>` : ""}
+      </div>
+      <div class="cv">${c.w ? fmtH1(c.w) : ""}</div>
+      <div class="cl">${c.lbl}</div>
+    </div>`).join("");
+
+  /* goal setting */
+  el("goalCard").innerHTML = `<h3>Weekly goal</h3>
+    <div class="stepRow" style="border:none;padding:2px 0;">
+      <span class="lbl">Target hours / week<small>drives week, 2-week and month targets</small></span>
+      <span class="stepper"><button onclick="stepGoal(-1)">−</button><span class="val">${(goalMin / 60).toFixed(1).replace(/\.0$/, "")}h</span><button onclick="stepGoal(1)">+</button></span>
+    </div>`;
+
+  /* day list */
+  let rows = "";
+  for (let d = addDays(to, -1); d >= from; d = addDays(d, -1)){
+    const k = dkey(d), t = dayTotals(k, at);
+    if (!t.n) continue;
+    const isToday = k === todayKey;
+    rows += `<div class="dayrow" onclick="openDay('${k}')">
+      <div class="dcol"><div class="dname">${isToday ? "Today" : DOWS[d.getDay()].slice(0, 3) + ", " + fmtDateShort(d)}</div>
+      <div class="dsub">${fmtTime(t.first)} – ${isToday && live ? "now" : fmtTime(t.last)}${t.n > 1 ? " · " + t.n + " sessions" : ""}</div></div>
+      <div><div class="dhrs">${fmtDur(t.w)}</div>${t.b ? `<div class="dbrk">${fmtDur(t.b)} break</div>` : ""}</div>
+      <span class="chev">›</span></div>`;
+  }
+  el("dayList").innerHTML = rows || `<div class="card" style="text-align:center;color:var(--ter)">No time tracked in this period</div>`;
+}
+
+/* ================= render: widgets ================= */
+function renderWidgets(){
+  const at = now().getTime();
+  const st = state();
+  const tt = dayTotals(dkey(now()), at);
+  upd("lockDate", DOWS[now().getDay()] + ", " + MONTHS[now().getMonth()] + " " + now().getDate());
+  const laB = el("laBtns"), hwB = el("hwBtns");
+  if (st === "out"){
+    upd("laState", "Clocked out"); el("laState").style.color = "var(--sec)";
+    upd("laSub", tt.w ? "today " + fmtDur(tt.w) : "ready when you are");
+    upd("laTimer", fmtDur(tt.w));
+    laB.innerHTML = `<button style="background:var(--green);color:#fff" onclick="clockIn()">▶ Start</button>`;
+    upd("hwState", "○ Off the clock");
+    upd("hwTimer", fmtDur(tt.w)); upd("hwSub", "today so far");
+    hwB.innerHTML = `<button style="background:var(--greenT);color:var(--greenD)" onclick="clockIn()">▶ Start</button>`;
+  } else if (st === "work"){
+    upd("laState", "Working"); el("laState").style.color = "var(--greenD)";
+    upd("laSub", "since " + fmtTime(live.in));
+    upd("laTimer", fmtTimer(liveNet(at)));
+    laB.innerHTML = `<button style="background:var(--amberT);color:var(--amberD)" onclick="startBreak()">Ⅱ Break</button><button style="background:var(--redT);color:var(--redD)" onclick="requestClockOut()">■ Stop</button>`;
+    upd("hwState", "● Working");
+    upd("hwTimer", fmtDur(tt.w)); upd("hwSub", "since " + fmtTime(live.in) + (liveBreak(at) ? " · breaks " + fmtDur(liveBreak(at)) : ""));
+    hwB.innerHTML = `<button style="background:var(--amberT);color:var(--amberD)" onclick="startBreak()">Ⅱ Break</button><button style="background:var(--redT);color:var(--redD)" onclick="requestClockOut()">■ Stop</button>`;
+  } else {
+    upd("laState", "On break"); el("laState").style.color = "var(--amberD)";
+    upd("laSub", "unpaid · worked " + fmtDur(liveNet(at)));
+    upd("laTimer", fmtTimer(segMs(live.segs[live.segs.length - 1], at)));
+    laB.innerHTML = `<button style="background:var(--green);color:#fff" onclick="resumeWork()">▶ Resume</button><button style="background:var(--redT);color:var(--redD)" onclick="requestClockOut()">■ Stop</button>`;
+    upd("hwState", "Ⅱ On break");
+    upd("hwTimer", fmtDur(tt.w)); upd("hwSub", "break " + fmtTimer(segMs(live.segs[live.segs.length - 1], at)));
+    hwB.innerHTML = `<button style="background:var(--greenT);color:var(--greenD)" onclick="resumeWork()">▶ Resume</button><button style="background:var(--redT);color:var(--redD)" onclick="requestClockOut()">■ Stop</button>`;
+  }
+  const wk = weekWorked(at);
+  upd("hwWeekLbl", fmtDur(wk) + " / " + fmtHM(goalMin));
+  el("hwWeekBar").style.width = Math.min(100, wk / (goalMin * MIN) * 100) + "%";
+}
+
+/* ================= status bar / island / tick ================= */
+function renderChrome(){
+  const d = now();
+  upd("sbTime", (d.getHours() % 12 || 12) + ":" + pad(d.getMinutes()));
+  const st = state();
+  /* iPhone 13: no Dynamic Island — iOS shows a colored status-bar time pill while tracking */
+  const sb = el("sbTime");
+  sb.classList.toggle("work", st === "work");
+  sb.classList.toggle("brk", st === "break");
+}
+function renderAll(){ renderChrome(); renderTrack(); renderReview(); renderWidgets(); }
+function tick(){
+  renderChrome();
+  const at = now().getTime();
+  const st = state();
+  if (st !== "out"){
+    if (st === "work"){ upd("tTimer", fmtTimer(liveNet(at))); upd("tEta", etaText(at)); setRing(liveNet(at) / plannedWorkMs(), "var(--green)"); }
+    else { upd("tTimer", fmtTimer(segMs(live.segs[live.segs.length - 1], at))); upd("tNetSoFar", fmtDur(liveNet(at))); }
+    const wk = weekWorked(at);
+    upd("wkWorked", fmtDur(wk));
+    const bar = el("wkBar"); if (bar) bar.style.width = Math.min(100, wk / (goalMin * MIN) * 100) + "%";
+    const need = el("wkNeed"); if (need) need.innerHTML = goalNeedHtml(wk, goalMin * MIN);
+    renderWidgets();
+    /* nudge can appear as time passes */
+    const learned = statsFor(now().getDay());
+    if (st === "work" && !nudgeDismissed && learned && learned.typBreakStartMin != null && el("nudge").classList.contains("hidden")){
+      const nowMin = now().getHours() * 60 + now().getMinutes();
+      if (learned.breakFreq >= 0.5 && liveBreakCount() === 0 && nowMin >= learned.typBreakStartMin - 20 && nowMin <= learned.typBreakStartMin + 45) renderTrack();
+    }
+    /* geofence: away from work past threshold → ask when they were done */
+    if (geo.enabled && geo.leftAt && !geo.prompted && at - geo.leftAt >= geo.thresholdMin * MIN){
+      geo.prompted = true;
+      showPush("Hours", "You've been away from Work for " + fmtDur(at - geo.leftAt) + ". Are you ready to clock out?",
+        `<button class="pbtn go" onclick="geoOutSheet()">Yes, clock out…</button><button class="pbtn" onclick="hidePush()">Still working</button>`, true);
+    }
+  }
+}
+setInterval(tick, 1000);
+renderAll();
+
+</script>
+</body>
+</html>
