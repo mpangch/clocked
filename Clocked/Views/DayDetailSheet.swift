@@ -59,9 +59,11 @@ struct DayDetailSheet: View {
     /// The actual Shift models for this day (completed + live), sorted by clock-in,
     /// so stepper edits map 1:1 to models.
     private var dayShifts: [Shift] {
-        let key = TimeMath.dayKey(day)
-        var out = TrackerStore.shared.completedShifts.filter { TimeMath.dayKey($0.clockIn) == key }
-        if let live = TrackerStore.shared.liveShift, TimeMath.dayKey(live.clockIn) == key {
+        // Single-day SQL predicate — not a full-history scan per render.
+        let dayStart = TimeMath.startOfDay(day)
+        var out = TrackerStore.shared.completedShifts(from: dayStart, to: TimeMath.addDays(dayStart, 1))
+        if let live = TrackerStore.shared.liveShift,
+           TimeMath.dayKey(live.clockIn) == TimeMath.dayKey(day) {
             out.append(live)
         }
         return out.sorted { $0.clockIn < $1.clockIn }

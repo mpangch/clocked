@@ -34,9 +34,15 @@ struct TrackView: View {
         let liveShift = store.liveShift
         let live = liveShift?.snapshot
         let state = Engine.state(live: live)
-        let all = store.allSnapshots
+        // Bounded fetches: this body re-runs every second — only the current
+        // week (week card, today totals) and the 8-week stats window may leave
+        // the database, regardless of how many years of history accumulate.
+        let weekStart = TimeMath.monday(of: now)
+        let all = store.allSnapshots(from: weekStart, to: TimeMath.addDays(weekStart, 7))
+        let statsWindowStart = TimeMath.addDays(TimeMath.startOfDay(now), -56)
         let todayStats = Engine.stats(forWeekday: TimeMath.jsWeekday(now),
-                                      history: store.historySnapshots,
+                                      history: store.historySnapshots(from: statsWindowStart,
+                                                                      to: TimeMath.addDays(TimeMath.startOfDay(now), 1)),
                                       reference: now)
 
         VStack(alignment: .leading, spacing: 0) {
@@ -516,7 +522,10 @@ struct ClockOutSheet: View {
 
     private func sheetContent(live: SessionSnapshot) -> some View {
         let now = Date.now
-        let weekAfter = Engine.weekWorked(sessions: store.allSnapshots, at: now)
+        let weekStart = TimeMath.monday(of: now)
+        let weekAfter = Engine.weekWorked(
+            sessions: store.allSnapshots(from: weekStart, to: TimeMath.addDays(weekStart, 7)),
+            at: now)
         let goalMinutes = Int(AppSettings.shared.weeklyGoalMinutes)
         return VStack(alignment: .leading, spacing: 0) {
             Text("Clock out?")

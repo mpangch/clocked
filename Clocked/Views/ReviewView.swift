@@ -23,7 +23,10 @@ struct ReviewView: View {
     private func content(now: Date) -> some View {
         @Bindable var model = model
         let (from, to) = Engine.periodRange(mode: model.reviewMode, offset: model.reviewOffset, today: now)
-        let all = store.allSnapshots
+        // Only the visible period leaves the database — lifetime history
+        // stays in SQLite no matter how many years accumulate.
+        let all = store.allSnapshots(from: from, to: to)
+        let byDay = Engine.totalsByDay(sessions: all, at: now)
         let tot = Engine.rangeTotals(from: from, to: to, sessions: all, at: now)
         let goal = Engine.periodGoal(mode: model.reviewMode, from: from, to: to,
                                      goalMinutes: AppSettings.shared.weeklyGoalMinutes)
@@ -47,10 +50,10 @@ struct ReviewView: View {
                 periodNav(from: from, to: to)
                 statRow(tot)
                 goalProgressCard(worked: tot.work, goal: goal)
-                chartCard(from: from, to: to, all: all, now: now)
+                chartCard(from: from, to: to, all: all, byDay: byDay, now: now)
                 goalSettingCard
                 daysHeader(from: from, to: to, now: now)
-                dayList(from: from, to: to, all: all, now: now)
+                dayList(from: from, to: to, byDay: byDay, now: now)
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 28)
@@ -182,14 +185,14 @@ struct ReviewView: View {
         var id: Int { idx }
     }
 
-    private func chartColumns(from: Date, to: Date, all: [SessionSnapshot], now: Date) -> [ChartColumn] {
+    private func chartColumns(from: Date, to: Date, all: [SessionSnapshot], byDay: [String: DayTotals], now: Date) -> [ChartColumn] {
         let cal = Calendar.current
         let todayKey = TimeMath.dayKey(now)
         var cols: [ChartColumn] = []
         if model.reviewMode != .month {
             let letters = Array("MTWTFSS")     // Mon-first
             for (i, d) in TimeMath.eachDay(from: from, to: to).enumerated() {
-                let t = Engine.dayTotals(on: d, sessions: all, at: now)
+                let t = byDay[TimeMath.dayKey(d)] ?? DayTotals()
                 let label = model.reviewMode == .week
                     ? String(letters[(TimeMath.jsWeekday(d) + 6) % 7])
                     : String(cal.component(.day, from: d))
@@ -215,8 +218,8 @@ struct ReviewView: View {
         return cols
     }
 
-    private func chartCard(from: Date, to: Date, all: [SessionSnapshot], now: Date) -> some View {
-        let cols = chartColumns(from: from, to: to, all: all, now: now)
+    private func chartCard(from: Date, to: Date, all: [SessionSnapshot], byDay: [String: DayTotals], now: Date) -> some View {
+        let cols = chartColumns(from: from, to: to, all: all, byDay: byDay, now: now)
         // mockup: maxV = Math.max(8 * HOUR, ...cols.map(c => c.w + c.b)) — in hours here.
         let maxHours = max(8.0, cols.map { ($0.work + $0.brk) / TimeMath.hour }.max() ?? 0)
         return Card(title: model.reviewMode == .month ? "Hours per week" : "Hours per day") {
@@ -324,7 +327,7 @@ struct ReviewView: View {
     }
 
     private func exportCSV(from: Date, to: Date, now: Date) {
-        let history = store.historySnapshots
+        let history = store.historySnapshots(from: from, to: to)
         let live = store.liveSnapshot
         let text = Engine.csv(history: history, live: live, from: from, to: to, at: now)
         var n = history.filter { $0.clockIn >= from && $0.clockIn < to }.count
@@ -343,10 +346,10 @@ struct ReviewView: View {
     }
 
     @ViewBuilder
-    private func dayList(from: Date, to: Date, all: [SessionSnapshot], now: Date) -> some View {
+    private func dayList(from: Date, to: Date, byDay: [String: DayTotals], now: Date) -> some View {
         let entries: [DayEntry] = TimeMath.eachDay(from: from, to: to).reversed().compactMap { d in
-            let t = Engine.dayTotals(on: d, sessions: all, at: now)
-            return t.sessionCount > 0 ? DayEntry(day: d, totals: t) : nil
+            guard let t = byDay[TimeMath.dayKey(d)], t.sessionCount > 0 else { return nil }
+            return DayEntry(day: d, totals: t)
         }
         if entries.isEmpty {
             Text("No time tracked in this period")

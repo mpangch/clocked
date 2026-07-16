@@ -70,6 +70,37 @@ final class TrackerStore {
         return out
     }
 
+    // MARK: - Date-bounded fetches
+    // A shift belongs to the calendar day of its clockIn, so every aggregate
+    // (day, week, review period, 8-week stats window) only ever needs shifts
+    // whose clockIn falls in a known range. Bounding the fetch keeps per-render
+    // cost proportional to the window, not to lifetime history — the views
+    // re-render every 1–30 s, and the store grows forever.
+
+    /// Completed shifts with clockIn in [from, to), oldest first.
+    func completedShifts(from: Date, to: Date) -> [Shift] {
+        let fd = FetchDescriptor<Shift>(
+            predicate: #Predicate { $0.clockOut != nil && $0.clockIn >= from && $0.clockIn < to },
+            sortBy: [SortDescriptor(\.clockIn)]
+        )
+        return (try? context.fetch(fd)) ?? []
+    }
+
+    /// Completed-shift snapshots with clockIn in [from, to).
+    func historySnapshots(from: Date, to: Date) -> [SessionSnapshot] {
+        completedShifts(from: from, to: to).map(\.snapshot)
+    }
+
+    /// History + live for [from, to) — the live shift is included only when
+    /// its clockIn is in range (day/period attribution follows clockIn).
+    func allSnapshots(from: Date, to: Date) -> [SessionSnapshot] {
+        var out = historySnapshots(from: from, to: to)
+        if let live = liveSnapshot, live.clockIn >= from, live.clockIn < to {
+            out.append(live)
+        }
+        return out
+    }
+
     var trackState: TrackState { Engine.state(live: liveSnapshot) }
 
     // MARK: - Clock actions (mockup: clockIn / startBreak / resumeWork / confirmClockOut)

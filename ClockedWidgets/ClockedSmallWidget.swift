@@ -55,7 +55,14 @@ struct ClockedProvider: TimelineProvider {
     @MainActor
     private static func makeEntries(at dates: [Date]) -> [ClockedEntry] {
         let store = TrackerStore.shared
-        let all = store.allSnapshots
+        // Entries span up to an hour ahead and can cross a week boundary at
+        // Sunday midnight — fetch from this week's Monday through the end of
+        // the last entry's week, never the whole history.
+        let now = dates.first ?? .now
+        let last = dates.last ?? now
+        let from = TimeMath.monday(of: now)
+        let to = TimeMath.addDays(TimeMath.monday(of: last), 7)
+        let all = store.allSnapshots(from: from, to: to)
         let live = store.liveSnapshot
         let state = Engine.state(live: live)
         // Read the goal fresh from the App Group — the process-cached

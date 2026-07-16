@@ -215,7 +215,9 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
               AppSettings.shared.nudgeDismissedForShiftStart != live.clockIn else { return }
         let now = Date.now
         guard let stats = Engine.stats(forWeekday: TimeMath.jsWeekday(now),
-                                       history: TrackerStore.shared.historySnapshots,
+                                       history: TrackerStore.shared.historySnapshots(
+                                           from: TimeMath.addDays(TimeMath.startOfDay(now), -56),
+                                           to: TimeMath.addDays(TimeMath.startOfDay(now), 1)),
                                        reference: now),
               stats.breakFreq >= 0.5,
               let typ = stats.typBreakStartMin else { return }

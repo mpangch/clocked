@@ -56,6 +56,7 @@
 		C72CF97B295885C33CCB52A6 /* TrackerStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2EAD726C278E988D545DF21 /* TrackerStore.swift */; };
 		C999EF6F37EB255F8953A5CA /* TimeMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = F065D751D8FFDD67BFFFBCC9 /* TimeMath.swift */; };
 		C9D7E6FE007A1AF20FAD1DE8 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E495F9CE4B0987AAE3C59E9 /* Models.swift */; };
+		CEDE06974971D39934790180 /* BoundedFetchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61704C384B43CBB1E670261E /* BoundedFetchTests.swift */; };
 		D1109E26D6C61437CB9E408F /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CD95A17ABAD0749C70E54B4 /* AppSettings.swift */; };
 		D9A9D4C530D7C2EF393D155C /* EtaAndGoalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36976D6965E3D0986511EA10 /* EtaAndGoalTests.swift */; };
 		DDD884E9F510AEDABE3A2718 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B814CBD2D5916A0EE7188618 /* Theme.swift */; };
@@ -112,6 +113,7 @@
 		571035C40F465623487D3C79 /* AggregationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AggregationTests.swift; sourceTree = "<group>"; };
 		608E475A850D4D5FEB3BB290 /* ClockedIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockedIntents.swift; sourceTree = "<group>"; };
 		610CC01C4E3EEB8B38D84EBB /* WheelSetterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WheelSetterTests.swift; sourceTree = "<group>"; };
+		61704C384B43CBB1E670261E /* BoundedFetchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoundedFetchTests.swift; sourceTree = "<group>"; };
 		65A24EC66DC08B4BB72DE1AC /* Wheels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Wheels.swift; sourceTree = "<group>"; };
 		675E4B1EF50CC2CC3D1C3643 /* ReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewView.swift; sourceTree = "<group>"; };
 		69C7A1B81C373EFBA5D3F116 /* ClockedWidgetsBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockedWidgetsBundle.swift; sourceTree = "<group>"; };
@@ -155,6 +157,7 @@
 				571035C40F465623487D3C79 /* AggregationTests.swift */,
 				12AD01A093654ED75E901B80 /* AuditDefectRegressionTests.swift */,
 				0A8681EFFD06B766835019BF /* AuditRegressionTests.swift */,
+				61704C384B43CBB1E670261E /* BoundedFetchTests.swift */,
 				CD7F2F3F7164FEEAC69132A4 /* CSVTests.swift */,
 				9F3D697B877D803EF419E5DD /* EditAndEntryTests.swift */,
 				36976D6965E3D0986511EA10 /* EtaAndGoalTests.swift */,
@@ -434,6 +437,7 @@
 				5F35BAA2C515FC17E467EAD3 /* AggregationTests.swift in Sources */,
 				8E9526C0AE2ACF5532E8692D /* AuditDefectRegressionTests.swift in Sources */,
 				3F6B8DCC932F70A37F183256 /* AuditRegressionTests.swift in Sources */,
+				CEDE06974971D39934790180 /* BoundedFetchTests.swift in Sources */,
 				48B7246935C4C1D9E1124888 /* CSVTests.swift in Sources */,
 				FC53A53ECF635F95608E8B8D /* EditAndEntryTests.swift in Sources */,
 				D9A9D4C530D7C2EF393D155C /* EtaAndGoalTests.swift in Sources */,

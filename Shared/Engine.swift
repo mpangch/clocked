@@ -52,11 +52,32 @@ enum Engine {
         return t
     }
 
+    /// One grouping pass over the sessions (mockup semantics: a session
+    /// belongs to the day of its clockIn). Turns the D-days × N-sessions
+    /// filter of per-day lookups into O(N + D) — the day list, chart, and
+    /// range totals all share it.
+    static func totalsByDay(sessions: [SessionSnapshot], at: Date, calendar: Calendar = .current) -> [String: DayTotals] {
+        var byDay: [String: DayTotals] = [:]
+        for s in sessions {
+            let key = TimeMath.dayKey(s.clockIn, calendar: calendar)
+            var t = byDay[key] ?? DayTotals()
+            t.work += workDuration(s, at: at)
+            t.brk += breakDuration(s, at: at)
+            t.sessionCount += 1
+            if t.first == nil || s.clockIn < t.first! { t.first = s.clockIn }
+            let end = s.clockOut ?? at
+            if t.last == nil || end > t.last! { t.last = end }
+            byDay[key] = t
+        }
+        return byDay
+    }
+
     /// Totals over day range [from, to)
     static func rangeTotals(from: Date, to: Date, sessions all: [SessionSnapshot], at: Date, calendar: Calendar = .current) -> RangeTotals {
+        let byDay = totalsByDay(sessions: all, at: at, calendar: calendar)
         var t = RangeTotals()
         for d in TimeMath.eachDay(from: from, to: to, calendar: calendar) {
-            let dt = dayTotals(on: d, sessions: all, at: at, calendar: calendar)
+            guard let dt = byDay[TimeMath.dayKey(d, calendar: calendar)] else { continue }
             t.work += dt.work
             t.brk += dt.brk
             if dt.work > 0 { t.daysWithWork += 1 }
