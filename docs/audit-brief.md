@@ -2,6 +2,8 @@
 
 You are auditing an iOS codebase you have never seen before. Trust nothing you read in code comments or docs about the implementation's correctness; verify everything against the spec and by running the code yourself.
 
+**Revision note:** this tree moves. Pin your audit to a commit: run `git log --oneline -1`, cite that SHA in your report, and cite findings as `file:line @ <sha>`. History so far: the app was renamed (Hours → Clocked, targets/dirs/identifiers included) and then gained tap-to-expand wheel pickers on every time/date/duration value; audits started before those commits will have stale paths and line numbers.
+
 ## What this is
 
 A personal hour-tracking app (one user, one job) targeting iPhone 13, iOS 17+. SwiftUI + SwiftData persistence, WidgetKit + App Intents (interactive widget), ActivityKit (Live Activity), CoreLocation region monitoring + UserNotifications (geofence prompts). No backend; an App Group shares the store between app and widget.
@@ -15,7 +17,7 @@ A personal hour-tracking app (one user, one job) targeting iPhone 13, iOS 17+. S
 ## Repo map
 
 - `Shared/` — SwiftData models, pure math engine (`Engine`/`TimeMath`/`Fmt`), settings, data controller (`TrackerStore`), App Intents, Live Activity attributes/manager, design tokens. Compiled into BOTH the app and the widget targets.
-- `Clocked/` — the app: views (Track / Review / Settings tabs + sheets), geofence + notification managers, app model/sheet routing.
+- `Clocked/` — the app: views (Track / Review / Settings tabs + sheets), geofence + notification managers, app model/sheet routing. `Views/Wheels.swift` holds the tap-to-expand wheel pickers: a UIDatePicker bridge (`WheelDatePicker`), a pure-SwiftUI duration roller (`WheelDurationPicker`), and the `ExpandableStepperRow` accordion used by the plan card and all three edit sheets.
 - `ClockedWidgets/` — widget extension: interactive systemSmall widget + lock-screen Live Activity.
 - `ClockedTests/` — unit tests (hosted in the app target).
 - `project.yml` — XcodeGen manifest; `Clocked.xcodeproj` is generated from it (`xcodegen generate`).
@@ -37,6 +39,7 @@ A personal hour-tracking app (one user, one job) targeting iPhone 13, iOS 17+. S
 Assume the implementation is wrong until proven otherwise. Hunt for:
 
 1. **Math/behavior divergence from the mockup JS** — rounding semantics, stepper clamps, window edges, period boundaries (Monday-based weeks, anchored 2-week pages, pro-rated month goal), day attribution of shifts, CSV format, suggestion/nudge conditions, ETA/ring math, backdated clock-out clamps.
+   Every editable value now has TWO commit paths — a ±stepper and a tap-to-expand wheel. The steppers delegate to absolute-set Engine functions (`setPlan`/`setAddEntry`/`clampedClockIn`/`clampedClockOut`/`clampedGeoOutTime`) that are supposed to enforce identical clamps; audit that parity (including cross-field re-clamps like add-entry's break ≤ out − in − 15m), the wheels' UIDatePicker min/max bounds vs the Engine limits they mirror, wheel commits landing on deleted/reordered SwiftData models, and the day-detail sheet's re-key behavior when a wheel edit drags a clock-in across midnight.
 2. **Data integrity** — any path that can violate the invariants (exactly one open segment while a shift is active; a break never ends a shift; net hours = Σ work segments), or lose/corrupt shifts: edits, deletes, manual adds, backdating, widget-intent writes racing app writes.
 3. **State-machine holes across surfaces** — app UI vs widget vs Live Activity vs notifications vs geofence events: stale state, missed reloads, double prompts, prompts suppressed when they shouldn't be, prompt state not cleared on the events the spec says clear it.
 4. **Platform correctness** — Swift concurrency/actor misuse, SwiftData pitfalls (cross-process store access, unordered relationships), ActivityKit/WidgetKit lifecycle, CoreLocation authorization and region-monitoring semantics, timezone/DST/midnight edge cases, iOS 17 API misuse.
@@ -44,7 +47,7 @@ Assume the implementation is wrong until proven otherwise. Hunt for:
 6. **Release safety** — DEBUG-only behavior leaking into release semantics; Info.plist/entitlements/bundle-ID problems.
 7. **Spec sweep** — walk every acceptance bullet in CLAUDE.md top to bottom: is each implemented at all?
 
-**Non-findings (do not report):** SwiftUI-native rendering of HTML idioms (system segmented control, sheet chrome, fonts a point off); style/idiom preferences; the 2-week anchor formula `monday(today) − 7d + offset×14d` (it is the spec even though pages shift as weeks pass); CSV emitting the live-shift row after the completed rows (mockup order).
+**Non-findings (do not report):** SwiftUI-native rendering of HTML idioms (system segmented control, sheet chrome, fonts a point off); style/idiom preferences; the 2-week anchor formula `monday(today) − 7d + offset×14d` (it is the spec even though pages shift as weeks pass); CSV emitting the live-shift row after the completed rows (mockup order). Wheel-picker choices that are deliberate (documented in CLAUDE.md): day-detail wheels use 1-minute precision even though the steppers move in 15m increments; a wheel scroll snaps to the displayed row (it does not preserve an off-grid minute offset the way a stepper does); the duration roller displays the nearest row for an off-grid value without mutating it until the user scrolls.
 
 ## Report format
 
