@@ -7,6 +7,9 @@ struct GeoOutSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var chosen: Date
 
+    private enum WheelTag { case finish }
+    @State private var expandedWheel: WheelTag?
+
     init() {
         let lastStart = TrackerStore.shared.liveSnapshot?.segments.last?.start ?? .now
         _chosen = State(initialValue: Engine.initialGeoOutTime(
@@ -17,18 +20,23 @@ struct GeoOutSheet: View {
     }
 
     var body: some View {
-        Group {
-            if let live = TrackerStore.shared.liveSnapshot {
-                content(live: live)
-            } else {
-                notClockedIn
+        // The wheel's upper bound and the clamp both need a LIVE "now" — a
+        // plain @State-driven body would freeze the bound at sheet-open time
+        // while the user deliberates.
+        TimelineView(.periodic(from: .now, by: 30)) { timeline in
+            Group {
+                if let live = TrackerStore.shared.liveSnapshot {
+                    content(live: live, now: timeline.date)
+                } else {
+                    notClockedIn
+                }
             }
         }
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)
     }
 
-    private func content(live: SessionSnapshot) -> some View {
+    private func content(live: SessionSnapshot, now: Date) -> some View {
         let lastStart = live.segments.last?.start ?? live.clockIn
         return VStack(alignment: .leading, spacing: 0) {
             Text("When were you done?")
@@ -40,7 +48,7 @@ struct GeoOutSheet: View {
                 .foregroundStyle(Theme.secondary)
                 .padding(.top, 4)
 
-            StepperRow(
+            ExpandableStepperRow(
                 label: "Finished at",
                 sublabel: "5-minute steps",
                 value: Fmt.time(chosen),
@@ -51,8 +59,23 @@ struct GeoOutSheet: View {
                 onPlus: {
                     chosen = Engine.steppedGeoOutTime(current: chosen, dir: 1,
                                                       lastSegmentStart: lastStart, now: .now)
-                }
-            )
+                },
+                tag: WheelTag.finish,
+                expanded: $expandedWheel
+            ) {
+                // max(now, floor): with a segment started < 5m ago the floor
+                // exceeds "now" and inverted bounds are undefined in UIKit.
+                WheelDatePicker(
+                    mode: .dateAndTime,
+                    minuteInterval: 5,
+                    minimumDate: Engine.clockOutFloor(lastSegmentStart: lastStart),
+                    maximumDate: max(now, Engine.clockOutFloor(lastSegmentStart: lastStart)),
+                    date: Binding(
+                        get: { chosen },
+                        set: { chosen = Engine.clampedGeoOutTime(proposed: $0, lastSegmentStart: lastStart, now: .now) }
+                    )
+                )
+            }
             .padding(.top, 8)
 
             SummaryRow(key: "Hours worked",

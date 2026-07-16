@@ -25,6 +25,7 @@
 		4623E7325F54116AC9D4BD9F /* TrackerStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2EAD726C278E988D545DF21 /* TrackerStore.swift */; };
 		48B7246935C4C1D9E1124888 /* CSVTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD7F2F3F7164FEEAC69132A4 /* CSVTests.swift */; };
 		49B0F21F50661CFEED096DB2 /* ClockedLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A839A437588A90DFFCBEB994 /* ClockedLiveActivity.swift */; };
+		4E13B2DFD3F7ED5B8FE1225B /* Wheels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A24EC66DC08B4BB72DE1AC /* Wheels.swift */; };
 		4F41242347C72C17C4076FED /* ClockedActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15D4A0C2AB4BE93A2717DD20 /* ClockedActivityAttributes.swift */; };
 		5BFB8FEDC7E75537FA24E6A1 /* StatsSuggestionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B50418F3A2D4D16B4614BAA0 /* StatsSuggestionTests.swift */; };
 		5F35BAA2C515FC17E467EAD3 /* AggregationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571035C40F465623487D3C79 /* AggregationTests.swift */; };
@@ -39,6 +40,7 @@
 		7BDF316FA74C42A9208752BF /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCD247E3376716D3937A419D /* Engine.swift */; };
 		7D67765E507F8B8D8524EE1C /* GeofenceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2B62181ABB7CBB8CBAD6CBB /* GeofenceManager.swift */; };
 		891C8222346B4235C538E729 /* ClockedSmallWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FE89E4F13F2978414A7109F /* ClockedSmallWidget.swift */; };
+		89ACC02D7473379D353C48B2 /* WheelSetterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 610CC01C4E3EEB8B38D84EBB /* WheelSetterTests.swift */; };
 		8B3CFB9C7F1F88DA3877093A /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E33DB74CC35BA959D621A2 /* LiveActivityManager.swift */; };
 		8D09EEE54357E35D9EB4242D /* TimeMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = F065D751D8FFDD67BFFFBCC9 /* TimeMath.swift */; };
 		8F44611775AAA13EE393CF09 /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E33DB74CC35BA959D621A2 /* LiveActivityManager.swift */; };
@@ -106,6 +108,8 @@
 		4CD95A17ABAD0749C70E54B4 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		571035C40F465623487D3C79 /* AggregationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AggregationTests.swift; sourceTree = "<group>"; };
 		608E475A850D4D5FEB3BB290 /* ClockedIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockedIntents.swift; sourceTree = "<group>"; };
+		610CC01C4E3EEB8B38D84EBB /* WheelSetterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WheelSetterTests.swift; sourceTree = "<group>"; };
+		65A24EC66DC08B4BB72DE1AC /* Wheels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Wheels.swift; sourceTree = "<group>"; };
 		675E4B1EF50CC2CC3D1C3643 /* ReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewView.swift; sourceTree = "<group>"; };
 		69C7A1B81C373EFBA5D3F116 /* ClockedWidgetsBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockedWidgetsBundle.swift; sourceTree = "<group>"; };
 		6E361F8074E9431082DA4F0A /* ClockedTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ClockedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -154,6 +158,7 @@
 				B50418F3A2D4D16B4614BAA0 /* StatsSuggestionTests.swift */,
 				A48D292523ED96DCEF70A40E /* StoreTests.swift */,
 				0FEFB4038CAE64001CBCD875 /* TestSupport.swift */,
+				610CC01C4E3EEB8B38D84EBB /* WheelSetterTests.swift */,
 			);
 			path = ClockedTests;
 			sourceTree = "<group>";
@@ -222,6 +227,7 @@
 				07A2A75023920C8623E322A9 /* RootView.swift */,
 				D498BDD49005CFAF3A67C601 /* SettingsView.swift */,
 				708535070F40D85CA6D38FD3 /* TrackView.swift */,
+				65A24EC66DC08B4BB72DE1AC /* Wheels.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -389,6 +395,7 @@
 				8D09EEE54357E35D9EB4242D /* TimeMath.swift in Sources */,
 				6D3E32AD34B1BA1E072E1EB8 /* TrackView.swift in Sources */,
 				4623E7325F54116AC9D4BD9F /* TrackerStore.swift in Sources */,
+				4E13B2DFD3F7ED5B8FE1225B /* Wheels.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -427,6 +434,7 @@
 				5BFB8FEDC7E75537FA24E6A1 /* StatsSuggestionTests.swift in Sources */,
 				3A696B32B2424965236431C9 /* StoreTests.swift in Sources */,
 				66A6760EF58ADB9267FD2FAD /* TestSupport.swift in Sources */,
+				89ACC02D7473379D353C48B2 /* WheelSetterTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

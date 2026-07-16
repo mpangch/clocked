@@ -220,19 +220,13 @@ enum Engine {
 
     // MARK: steppers & clamps (mockup: stepPlan / stepGoal / stepAdd / editShift / stepGeoOut)
 
+    /// Stepper path: delegate to the absolute setter so the clamps live once.
     static func stepPlan(_ draft: PlanDraft, field: PlanField, dir: Int) -> PlanDraft {
-        var d = draft
         switch field {
-        case .workMin:
-            d.workMin = min(14 * 60, max(30, d.workMin + dir * 15))
-        case .breakCount:
-            d.breakCount = min(4, max(0, d.breakCount + dir))
-            if d.breakCount == 0 { d.breakMin = 0 }
-            else if d.breakMin == 0 { d.breakMin = 30 }
-        case .breakMin:
-            d.breakMin = min(4 * 60, max(0, d.breakMin + dir * 15))
+        case .workMin: return setPlan(draft, field: field, value: draft.workMin + dir * 15)
+        case .breakCount: return setPlan(draft, field: field, value: draft.breakCount + dir)
+        case .breakMin: return setPlan(draft, field: field, value: draft.breakMin + dir * 15)
         }
-        return d
     }
 
     enum PlanField { case workMin, breakCount, breakMin }
@@ -242,19 +236,49 @@ enum Engine {
         min(80 * 60, max(5 * 60, goalMinutes + Double(dir) * 30))
     }
 
+    /// Stepper path: delegate to the absolute setter so the clamps live once.
     static func stepAddEntry(_ draft: AddEntryDraft, field: AddField, dir: Int) -> AddEntryDraft {
+        switch field {
+        case .dayOffset: return setAddEntry(draft, field: field, value: draft.dayOffset + dir)
+        case .inMin: return setAddEntry(draft, field: field, value: draft.inMin + dir * 15)
+        case .outMin: return setAddEntry(draft, field: field, value: draft.outMin + dir * 15)
+        case .breakMin: return setAddEntry(draft, field: field, value: draft.breakMin + dir * 15)
+        }
+    }
+
+    enum AddField { case dayOffset, inMin, outMin, breakMin }
+
+    /// Absolute-set variant of stepAddEntry for the wheel pickers — same clamps,
+    /// same cross-field break re-clamp. `value` is days for .dayOffset, minutes
+    /// otherwise (mirroring stepAddEntry's field-dependent semantics).
+    static func setAddEntry(_ draft: AddEntryDraft, field: AddField, value: Int) -> AddEntryDraft {
         var d = draft
         switch field {
-        case .dayOffset: d.dayOffset = min(0, max(-60, d.dayOffset + dir))
-        case .inMin: d.inMin = min(d.outMin - 30, max(0, d.inMin + dir * 15))
-        case .outMin: d.outMin = min(24 * 60 - 15, max(d.inMin + 30, d.outMin + dir * 15))
-        case .breakMin: d.breakMin = max(0, d.breakMin + dir * 15)
+        case .dayOffset: d.dayOffset = min(0, max(-60, value))
+        case .inMin: d.inMin = min(d.outMin - 30, max(0, value))
+        case .outMin: d.outMin = min(24 * 60 - 15, max(d.inMin + 30, value))
+        case .breakMin: d.breakMin = max(0, value)
         }
         d.breakMin = min(d.breakMin, max(0, d.outMin - d.inMin - 15))
         return d
     }
 
-    enum AddField { case dayOffset, inMin, outMin, breakMin }
+    /// Absolute-set variant of stepPlan for the wheel pickers — same clamps,
+    /// same breakCount↔breakMin coupling.
+    static func setPlan(_ draft: PlanDraft, field: PlanField, value: Int) -> PlanDraft {
+        var d = draft
+        switch field {
+        case .workMin:
+            d.workMin = min(14 * 60, max(30, value))
+        case .breakCount:
+            d.breakCount = min(4, max(0, value))
+            if d.breakCount == 0 { d.breakMin = 0 }
+            else if d.breakMin == 0 { d.breakMin = 30 }
+        case .breakMin:
+            d.breakMin = min(4 * 60, max(0, value))
+        }
+        return d
+    }
 
     /// mockup: saveAddEntry — break inserted as a single centered segment.
     static func manualEntrySegments(dayStart: Date, draft: AddEntryDraft) -> [SegmentSnapshot] {
@@ -273,17 +297,39 @@ enum Engine {
         ]
     }
 
+    /// The single source of the ±5m edit margins — the clamp functions AND the
+    /// wheel pickers' UIDatePicker bounds both derive from these two limits.
+
+    /// Latest allowed clock-in: first-segment-end − 5m (mockup editShift 'in').
+    static func clockInLimit(firstSegmentEnd: Date?, clockOut: Date) -> Date {
+        (firstSegmentEnd ?? clockOut).addingTimeInterval(-5 * 60)
+    }
+
+    /// Earliest allowed clock-out / geo finish: last-segment-start + 5m.
+    static func clockOutFloor(lastSegmentStart: Date) -> Date {
+        lastSegmentStart.addingTimeInterval(5 * 60)
+    }
+
+    /// Absolute-set clamp behind both the 15m stepper and the wheel picker.
+    static func clampedClockIn(proposed: Date, firstSegmentEnd: Date?, clockOut: Date) -> Date {
+        min(proposed, clockInLimit(firstSegmentEnd: firstSegmentEnd, clockOut: clockOut))
+    }
+
+    /// Absolute-set clamp behind both the 15m stepper and the wheel picker.
+    static func clampedClockOut(proposed: Date, lastSegmentStart: Date) -> Date {
+        max(proposed, clockOutFloor(lastSegmentStart: lastSegmentStart))
+    }
+
     /// mockup editShift 'in': new clock-in, clamped to first-segment-end − 5m.
     static func steppedClockIn(current: Date, dir: Int, firstSegmentEnd: Date?, clockOut: Date) -> Date {
-        let proposed = current.addingTimeInterval(Double(dir * editStepMinutes) * 60)
-        let limit = (firstSegmentEnd ?? clockOut).addingTimeInterval(-5 * 60)
-        return min(proposed, limit)
+        clampedClockIn(proposed: current.addingTimeInterval(Double(dir * editStepMinutes) * 60),
+                       firstSegmentEnd: firstSegmentEnd, clockOut: clockOut)
     }
 
     /// mockup editShift 'out': new clock-out, clamped to last-segment-start + 5m.
     static func steppedClockOut(current: Date, dir: Int, lastSegmentStart: Date) -> Date {
-        let proposed = current.addingTimeInterval(Double(dir * editStepMinutes) * 60)
-        return max(proposed, lastSegmentStart.addingTimeInterval(5 * 60))
+        clampedClockOut(proposed: current.addingTimeInterval(Double(dir * editStepMinutes) * 60),
+                        lastSegmentStart: lastSegmentStart)
     }
 
     /// mockup geoOutSheet: initial backdated finish time.
@@ -291,10 +337,16 @@ enum Engine {
         max(leftAt ?? now, lastSegmentStart.addingTimeInterval(5 * 60))
     }
 
+    /// Absolute-set clamp shared by the 5m stepper and the wheel picker:
+    /// finish time stays within [last-segment-start + 5m, now].
+    static func clampedGeoOutTime(proposed: Date, lastSegmentStart: Date, now: Date) -> Date {
+        min(now, max(clockOutFloor(lastSegmentStart: lastSegmentStart), proposed))
+    }
+
     /// mockup stepGeoOut: ±5m, clamped between last-segment-start + 5m and now.
     static func steppedGeoOutTime(current: Date, dir: Int, lastSegmentStart: Date, now: Date) -> Date {
-        let proposed = current.addingTimeInterval(Double(dir * geoStepMinutes) * 60)
-        return min(now, max(lastSegmentStart.addingTimeInterval(5 * 60), proposed))
+        clampedGeoOutTime(proposed: current.addingTimeInterval(Double(dir * geoStepMinutes) * 60),
+                          lastSegmentStart: lastSegmentStart, now: now)
     }
 
     /// mockup confirmGeoOut: the open segment ends at max(chosen, segStart + 1m).

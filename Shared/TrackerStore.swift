@@ -125,26 +125,44 @@ final class TrackerStore {
 
     // MARK: - Editing (mockup: editShift / deleteShift / saveAddEntry)
 
+    /// 15m stepper path — delegates to the absolute setter so the clamp lives once.
     func adjustClockIn(_ shift: Shift, direction: Int) {
-        guard shift.clockOut != nil else { return }
+        setClockIn(shift, to: shift.clockIn.addingTimeInterval(Double(direction * Engine.editStepMinutes) * 60))
+    }
+
+    /// 15m stepper path — delegates to the absolute setter so the clamp lives once.
+    func adjustClockOut(_ shift: Shift, direction: Int) {
+        guard let out = shift.clockOut else { return }
+        setClockOut(shift, to: out.addingTimeInterval(Double(direction * Engine.editStepMinutes) * 60))
+    }
+
+    /// Set the clock-in to an absolute time (wheel picker), clamped like the stepper.
+    func setClockIn(_ shift: Shift, to proposed: Date) {
+        guard isEditable(shift), shift.clockOut != nil else { return }
         let ordered = shift.orderedSegments
         guard let first = ordered.first else { return }
-        let newIn = Engine.steppedClockIn(
-            current: shift.clockIn, dir: direction,
-            firstSegmentEnd: first.end, clockOut: shift.clockOut!
-        )
+        let newIn = Engine.clampedClockIn(proposed: proposed,
+                                          firstSegmentEnd: first.end,
+                                          clockOut: shift.clockOut!)
         shift.clockIn = newIn
         first.start = newIn
         persistAndNotify()
     }
 
-    func adjustClockOut(_ shift: Shift, direction: Int) {
-        guard let out = shift.clockOut,
+    /// Set the clock-out to an absolute time (wheel picker), clamped like the stepper.
+    func setClockOut(_ shift: Shift, to proposed: Date) {
+        guard isEditable(shift), shift.clockOut != nil,
               let last = shift.orderedSegments.last else { return }
-        let newOut = Engine.steppedClockOut(current: out, dir: direction, lastSegmentStart: last.start)
+        let newOut = Engine.clampedClockOut(proposed: proposed, lastSegmentStart: last.start)
         shift.clockOut = newOut
         last.end = newOut
         persistAndNotify()
+    }
+
+    /// A decelerating wheel can fire its final valueChanged after "Delete
+    /// session" already removed the shift — mutating a deleted @Model faults.
+    private func isEditable(_ shift: Shift) -> Bool {
+        !shift.isDeleted && shift.modelContext != nil
     }
 
     func deleteShift(_ shift: Shift) {

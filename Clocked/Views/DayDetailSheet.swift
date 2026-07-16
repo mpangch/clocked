@@ -11,12 +11,39 @@ struct DayDetailSheet: View {
     /// Present so SwiftData changes (stepper edits, deletes) re-render this sheet.
     @Query(sort: \Shift.clockIn) private var shifts: [Shift]
 
+    /// Wheel expansion keyed by shift IDENTITY (not list position): deletes and
+    /// clock-in re-sorts renumber sessions, and a positional key would hand the
+    /// open wheel to a different shift mid-gesture.
+    struct WheelTag: Hashable {
+        let id: PersistentIdentifier
+        let isClockOut: Bool
+    }
+    @State private var expandedWheel: WheelTag?
+    @State private var rekeyTask: Task<Void, Never>?
+
     /// mockup editShift ends with openDay(dkey(s.in)): when a clock-in edit
     /// crosses midnight, the sheet follows the session to its new day instead
     /// of letting it silently vanish from the current one.
     private func adjustClockIn(_ shift: Shift, direction: Int) {
         TrackerStore.shared.adjustClockIn(shift, direction: direction)
-        if TimeMath.dayKey(shift.clockIn) != TimeMath.dayKey(day) {
+        followSessionIfDayChanged(shift)
+    }
+
+    private func setClockIn(_ shift: Shift, to date: Date) {
+        TrackerStore.shared.setClockIn(shift, to: date)
+        followSessionIfDayChanged(shift)
+    }
+
+    /// Debounced: the date+time wheel makes crossing midnight a one-flick
+    /// action, and a still-decelerating second wheel component must not re-key
+    /// the sheet a second time mid-transition.
+    private func followSessionIfDayChanged(_ shift: Shift) {
+        guard TimeMath.dayKey(shift.clockIn) != TimeMath.dayKey(day) else { return }
+        rekeyTask?.cancel()
+        rekeyTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.8))
+            guard !Task.isCancelled, !shift.isDeleted,
+                  TimeMath.dayKey(shift.clockIn) != TimeMath.dayKey(day) else { return }
             model.activeSheet = .dayDetail(TimeMath.startOfDay(shift.clockIn))
         }
     }
@@ -150,7 +177,9 @@ struct DayDetailSheet: View {
     @ViewBuilder
     private func sessionBlock(index: Int, shift: Shift, now: Date) -> some View {
         let isLive = shift.clockOut == nil
-        VStack(alignment: .leading, spacing: 0) {
+        // One sort per block: the wheel bounds and the segment list share it.
+        let segments = shift.orderedSegments
+        return VStack(alignment: .leading, spacing: 0) {
             Text("Session \(index)\(isLive ? " · active now" : "")".uppercased())
                 .font(.system(size: 11.5, weight: .bold))
                 .kerning(0.5)
@@ -159,23 +188,46 @@ struct DayDetailSheet: View {
                 .padding(.bottom, 2)
 
             if !isLive, let out = shift.clockOut {
-                StepperRow(
+                ExpandableStepperRow(
                     label: "Clock in",
                     sublabel: "fix in 15m steps",
                     value: Fmt.time(shift.clockIn),
                     onMinus: { adjustClockIn(shift, direction: -1) },
-                    onPlus: { adjustClockIn(shift, direction: 1) }
-                )
-                StepperRow(
+                    onPlus: { adjustClockIn(shift, direction: 1) },
+                    tag: WheelTag(id: shift.persistentModelID, isClockOut: false),
+                    expanded: $expandedWheel
+                ) {
+                    // 1-minute precision: real punches are off the 15m grid
+                    // (9:07), and a coarser wheel would silently shave minutes
+                    // the moment any other column is scrolled.
+                    WheelDatePicker(
+                        mode: .dateAndTime,
+                        minuteInterval: 1,
+                        maximumDate: Engine.clockInLimit(firstSegmentEnd: segments.first?.end, clockOut: out),
+                        date: Binding(get: { shift.clockIn },
+                                      set: { setClockIn(shift, to: $0) })
+                    )
+                }
+                ExpandableStepperRow(
                     label: "Clock out",
                     sublabel: "forgot? adjust it here",
                     value: Fmt.time(out),
                     onMinus: { TrackerStore.shared.adjustClockOut(shift, direction: -1) },
-                    onPlus: { TrackerStore.shared.adjustClockOut(shift, direction: 1) }
-                )
+                    onPlus: { TrackerStore.shared.adjustClockOut(shift, direction: 1) },
+                    tag: WheelTag(id: shift.persistentModelID, isClockOut: true),
+                    expanded: $expandedWheel
+                ) {
+                    WheelDatePicker(
+                        mode: .dateAndTime,
+                        minuteInterval: 1,
+                        minimumDate: Engine.clockOutFloor(lastSegmentStart: segments.last?.start ?? shift.clockIn),
+                        date: Binding(get: { shift.clockOut ?? out },
+                                      set: { TrackerStore.shared.setClockOut(shift, to: $0) })
+                    )
+                }
             }
 
-            ForEach(shift.orderedSegments) { seg in
+            ForEach(segments) { seg in
                 SummaryRow(
                     key: seg.isBreak ? "Break (unpaid)" : "Work",
                     value: segmentValue(seg, now: now)

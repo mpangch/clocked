@@ -24,11 +24,15 @@ struct Card<Content: View>: View {
     }
 }
 
-/// − value + control (mockup .stepper)
+/// − value + control (mockup .stepper). When `onTapValue` is set, the value
+/// itself is a button (used to expand an inline wheel picker) and renders
+/// blue while `valueHighlighted`.
 struct StepperControl: View {
     var value: String
     var onMinus: () -> Void
     var onPlus: () -> Void
+    var onTapValue: (() -> Void)? = nil
+    var valueHighlighted: Bool = false
 
     var body: some View {
         HStack(spacing: 0) {
@@ -36,10 +40,7 @@ struct StepperControl: View {
                 Text("−").font(.system(size: 20, weight: .semibold))
                     .frame(width: 38, height: 34)
             }
-            Text(value)
-                .font(.system(size: 14.5, weight: .bold))
-                .monospacedDigit()
-                .frame(minWidth: 74)
+            valueView
             Button(action: onPlus) {
                 Text("+").font(.system(size: 20, weight: .semibold))
                     .frame(width: 38, height: 34)
@@ -50,15 +51,32 @@ struct StepperControl: View {
         .background(Theme.inset)
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
+
+    @ViewBuilder private var valueView: some View {
+        let text = Text(value)
+            .font(.system(size: 14.5, weight: .bold))
+            .monospacedDigit()
+            .foregroundStyle(valueHighlighted ? Theme.blue : Theme.label)
+            .frame(minWidth: 74)
+        if let onTapValue {
+            Button(action: onTapValue) { text.contentShape(Rectangle()) }
+        } else {
+            text
+        }
+    }
 }
 
-/// Label (+ small sublabel) with a stepper on the right (mockup .stepRow)
+/// Label (+ small sublabel) with a stepper on the right (mockup .stepRow).
+/// `onTapValue`/`valueHighlighted` pass through to StepperControl so
+/// ExpandableStepperRow can compose this instead of duplicating the layout.
 struct StepperRow: View {
     var label: String
     var sublabel: String?
     var value: String
     var onMinus: () -> Void
     var onPlus: () -> Void
+    var onTapValue: (() -> Void)? = nil
+    var valueHighlighted: Bool = false
 
     var body: some View {
         HStack {
@@ -71,7 +89,8 @@ struct StepperRow: View {
                 }
             }
             Spacer()
-            StepperControl(value: value, onMinus: onMinus, onPlus: onPlus)
+            StepperControl(value: value, onMinus: onMinus, onPlus: onPlus,
+                           onTapValue: onTapValue, valueHighlighted: valueHighlighted)
         }
         .padding(.vertical, 9)
     }

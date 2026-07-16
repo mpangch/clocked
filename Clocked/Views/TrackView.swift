@@ -8,6 +8,8 @@ struct TrackView: View {
     /// Only here to trigger re-render when SwiftData changes;
     /// all reads go through TrackerStore snapshots.
     @Query(sort: \Shift.clockIn) private var shifts: [Shift]
+    /// Which plan-card duration wheel is open.
+    @State private var expandedPlanWheel: Engine.PlanField?
 
     private var store: TrackerStore { .shared }
     private var settings: AppSettings { .shared }
@@ -356,11 +358,18 @@ struct TrackView: View {
                 .background(Theme.inset, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
             VStack(spacing: 0) {
-                StepperRow(label: "Shift length",
-                           sublabel: "hours on the clock",
-                           value: Fmt.hm(draft.workMin),
-                           onMinus: { stepPlan(.workMin, -1) },
-                           onPlus: { stepPlan(.workMin, +1) })
+                ExpandableStepperRow(label: "Shift length",
+                                     sublabel: "hours on the clock",
+                                     value: Fmt.hm(draft.workMin),
+                                     onMinus: { stepPlan(.workMin, -1) },
+                                     onPlus: { stepPlan(.workMin, +1) },
+                                     tag: Engine.PlanField.workMin,
+                                     expanded: $expandedPlanWheel) {
+                    WheelDurationPicker(minuteInterval: 15, maxHours: 14, minutes: Binding(
+                        get: { settings.planDraft.workMin },
+                        set: { settings.planDraft = Engine.setPlan(settings.planDraft, field: .workMin, value: $0) }
+                    ))
+                }
                 Divider().overlay(Theme.separator)
                 StepperRow(label: "Breaks",
                            sublabel: "unpaid, won’t clock you out",
@@ -369,11 +378,18 @@ struct TrackView: View {
                            onPlus: { stepPlan(.breakCount, +1) })
                 if draft.breakCount > 0 {
                     Divider().overlay(Theme.separator)
-                    StepperRow(label: "Break time",
-                               sublabel: "total across breaks",
-                               value: Fmt.hm(draft.breakMin),
-                               onMinus: { stepPlan(.breakMin, -1) },
-                               onPlus: { stepPlan(.breakMin, +1) })
+                    ExpandableStepperRow(label: "Break time",
+                                         sublabel: "total across breaks",
+                                         value: Fmt.hm(draft.breakMin),
+                                         onMinus: { stepPlan(.breakMin, -1) },
+                                         onPlus: { stepPlan(.breakMin, +1) },
+                                         tag: Engine.PlanField.breakMin,
+                                         expanded: $expandedPlanWheel) {
+                        WheelDurationPicker(minuteInterval: 15, maxHours: 4, minutes: Binding(
+                            get: { settings.planDraft.breakMin },
+                            set: { settings.planDraft = Engine.setPlan(settings.planDraft, field: .breakMin, value: $0) }
+                        ))
+                    }
                 }
             }
             Text(.init("Clock in now → finish around **\(Fmt.time(finish))**"))
@@ -387,6 +403,7 @@ struct TrackView: View {
     private func stepPlan(_ field: Engine.PlanField, _ dir: Int) {
         settings.planDraft = Engine.stepPlan(settings.planDraft, field: field, dir: dir)
     }
+
 
     // MARK: this week card
 

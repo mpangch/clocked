@@ -50,6 +50,8 @@ Settings (UserDefaults via App Group): `weeklyGoalHours` (Double, default 32.5, 
 - **Add entry** sheet (＋ in Review): date (up to 60 days back), clock in, clock out (≥ in + 30m), unpaid break total (inserted as one centered break segment). 
 - **Export CSV** for the visible period: header `date,clock_in,clock_out,break_minutes,net_hours`, one row per shift (24h times), active shift as `(active)`, final `total` row. Share via ShareLink/fileExporter.
 
+- Every time/date/duration value behind a stepper (plan shift length & break time, day-detail clock in/out, all four add-entry fields, geo clock-out finish time) is also tappable: it expands an inline wheel picker (wheel pickers; 1m precision for day-detail fixes, 15m for plan/add-entry, 5m for the geo finish time) clamped to the same limits as the steppers.
+
 ### Weekly goal
 - Shown on Track ("This week" card) and Review; live-updates while clocked in.
 
