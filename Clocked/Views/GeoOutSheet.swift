@@ -89,8 +89,11 @@ struct GeoOutSheet: View {
                 BigButton(title: "Still working",
                           background: Theme.inset,
                           foreground: Theme.label) {
-                    // mockup: suppress re-prompting until the next exit/enter.
+                    // mockup: suppress re-prompting until the next exit/enter —
+                    // and kill the scheduled/delivered notification, or its
+                    // "Yes, clock out…" action re-opens this declined episode.
                     AppSettings.shared.awayPrompted = true
+                    NotificationManager.shared.cancelAwayPrompt()
                     dismiss()
                 }
                 BigButton(title: "Clock Out",

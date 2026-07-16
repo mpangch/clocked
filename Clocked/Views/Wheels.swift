@@ -50,40 +50,71 @@ struct WheelDatePicker: UIViewRepresentable {
     }
 }
 
+/// Pure domain for a two-column (hours | minutes) duration wheel: it exposes
+/// EXACTLY the valid rows for a ClosedRange of total minutes, so boundary
+/// hour/minute combinations outside the range are never selectable — the user
+/// cannot pick 14h 45m on a 30m…14h wheel and watch it snap to 14h 00m.
+struct DurationWheelDomain: Equatable {
+    let range: ClosedRange<Int>      // total minutes
+    let interval: Int
+
+    var hourValues: [Int] { Array((range.lowerBound / 60)...(range.upperBound / 60)) }
+
+    /// Interval-grid minute rows that keep hour·60+minute inside the range.
+    func minuteValues(forHour hour: Int) -> [Int] {
+        let rows = stride(from: 0, to: 60, by: interval).filter { range.contains(hour * 60 + $0) }
+        // Grid-aligned bounds always leave ≥1 row; keep a safe fallback for
+        // degenerate ranges rather than rendering an empty wheel column.
+        return rows.isEmpty ? [min(max(range.lowerBound - hour * 60, 0), 59)] : rows
+    }
+
+    /// Nearest displayable (hour, minute) for a value — off-grid values render
+    /// as the closest valid row without being mutated until the user scrolls.
+    func displayed(for totalMinutes: Int) -> (hour: Int, minute: Int) {
+        let clamped = min(max(totalMinutes, range.lowerBound), range.upperBound)
+        let hour = clamped / 60
+        return (hour, nearestMinute(to: clamped % 60, forHour: hour))
+    }
+
+    /// Total after the user selects `hour`, keeping the previously displayed
+    /// minute where that hour allows it (else the nearest valid row).
+    func total(forHour hour: Int, preferredMinute minute: Int) -> Int {
+        hour * 60 + nearestMinute(to: minute, forHour: hour)
+    }
+
+    private func nearestMinute(to minute: Int, forHour hour: Int) -> Int {
+        minuteValues(forHour: hour).min(by: { abs($0 - minute) < abs($1 - minute) }) ?? 0
+    }
+}
+
 /// Duration roller ("2h · 45m") in pure SwiftUI. Deliberately NOT
 /// UIDatePicker.countDownTimer, which can't rest at 0h 0m (it auto-commits a
 /// nonzero duration on open) and famously drops the first spin's valueChanged.
+/// The rows come from DurationWheelDomain, so only in-range values exist.
 struct WheelDurationPicker: View {
     var minuteInterval: Int = 15
-    var maxHours: Int
+    var range: ClosedRange<Int>
     @Binding var minutes: Int
 
-    private var minuteRows: [Int] { Array(stride(from: 0, to: 60, by: minuteInterval)) }
-
-    /// Nearest displayable minute row (values off the grid render as the
-    /// closest row; the underlying value only changes when the user scrolls).
-    private var displayedMinute: Int {
-        let m = minutes % 60
-        return minuteRows.min(by: { abs($0 - m) < abs($1 - m) }) ?? 0
-    }
-
     var body: some View {
+        let domain = DurationWheelDomain(range: range, interval: minuteInterval)
+        let shown = domain.displayed(for: minutes)
         HStack(spacing: 0) {
             Picker("Hours", selection: Binding(
-                get: { min(minutes / 60, maxHours) },
-                set: { minutes = $0 * 60 + displayedMinute }
+                get: { shown.hour },
+                set: { minutes = domain.total(forHour: $0, preferredMinute: shown.minute) }
             )) {
-                ForEach(0...maxHours, id: \.self) { h in
+                ForEach(domain.hourValues, id: \.self) { h in
                     Text("\(h)h").tag(h)
                 }
             }
             .pickerStyle(.wheel)
 
             Picker("Minutes", selection: Binding(
-                get: { displayedMinute },
-                set: { minutes = (minutes / 60) * 60 + $0 }
+                get: { shown.minute },
+                set: { minutes = shown.hour * 60 + $0 }
             )) {
-                ForEach(minuteRows, id: \.self) { m in
+                ForEach(domain.minuteValues(forHour: shown.hour), id: \.self) { m in
                     Text("\(m)m").tag(m)
                 }
             }

@@ -130,21 +130,21 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     /// Called when the app becomes active.
     func refreshOnForeground() {
         refreshAuthorizationStatus()
-        let defaults = AppGroup.defaults
-        if defaults.bool(forKey: pendingGeoOutSheetKey) {
-            // A "Yes, clock out…" tap cold-launched the app before RootView
-            // subscribed — consume the flag and open the sheet now.
-            defaults.removeObject(forKey: pendingGeoOutSheetKey)
-            NotificationCenter.default.post(name: .openGeoOutSheet, object: nil)
-        } else if TrackerStore.shared.liveShift != nil,
-                  let leftAt = AppSettings.shared.leftWorkAt,
-                  !AppSettings.shared.awayPrompted,
-                  Date.now.timeIntervalSince(leftAt) >= Double(AppSettings.shared.awayThresholdMinutes) * 60 {
-            // In-app equivalent of the mockup's tick prompt; the sheet's
-            // "Still working" button is the decline path.
-            AppSettings.shared.awayPrompted = true
-            NotificationCenter.default.post(name: .openGeoOutSheet, object: nil)
-        }
+        let effects = AwayPromptPolicy.foregroundCatchUp(
+            pendingSheetFlag: AppGroup.defaults.bool(forKey: pendingGeoOutSheetKey),
+            hasLiveShift: TrackerStore.shared.liveShift != nil,
+            leftWorkAt: AppSettings.shared.leftWorkAt,
+            awayPrompted: AppSettings.shared.awayPrompted,
+            thresholdMinutes: AppSettings.shared.awayThresholdMinutes,
+            now: .now
+        )
+        if effects.consumePendingFlag { AppGroup.defaults.removeObject(forKey: pendingGeoOutSheetKey) }
+        // Answering the episode in-app: the scheduled/delivered notification
+        // must not stay actionable, or its "Yes, clock out…" reopens the sheet
+        // for an episode already declined via "Still working".
+        if effects.cancelAwayPrompt { cancelAwayPrompt() }
+        if effects.markPrompted { AppSettings.shared.awayPrompted = true }
+        if effects.openSheet { NotificationCenter.default.post(name: .openGeoOutSheet, object: nil) }
     }
 
     // MARK: - Geofence notifications
@@ -258,6 +258,17 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         case clockInActionID:
             TrackerStore.shared.clockIn(plan: AppSettings.shared.planDraft)
         case geoClockOutActionID:
+            // Reject a STALE action: after "Still working" declined the
+            // episode, or re-entry/clock-out cleared it, a leftover delivered
+            // notification must not reopen the sheet.
+            guard AwayPromptPolicy.acceptGeoClockOut(
+                hasLiveShift: TrackerStore.shared.liveShift != nil,
+                leftWorkAt: AppSettings.shared.leftWorkAt,
+                awayPrompted: AppSettings.shared.awayPrompted
+            ) else {
+                cancelAwayPrompt()
+                break
+            }
             // mockup sets geo.prompted when the prompt is answered — don't
             // re-prompt this away episode even if the sheet is cancelled.
             AppSettings.shared.awayPrompted = true

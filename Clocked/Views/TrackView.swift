@@ -365,7 +365,7 @@ struct TrackView: View {
                                      onPlus: { stepPlan(.workMin, +1) },
                                      tag: Engine.PlanField.workMin,
                                      expanded: $expandedPlanWheel) {
-                    WheelDurationPicker(minuteInterval: 15, maxHours: 14, minutes: Binding(
+                    WheelDurationPicker(minuteInterval: 15, range: 30...840, minutes: Binding(
                         get: { settings.planDraft.workMin },
                         set: { settings.planDraft = Engine.setPlan(settings.planDraft, field: .workMin, value: $0) }
                     ))
@@ -385,7 +385,7 @@ struct TrackView: View {
                                          onPlus: { stepPlan(.breakMin, +1) },
                                          tag: Engine.PlanField.breakMin,
                                          expanded: $expandedPlanWheel) {
-                        WheelDurationPicker(minuteInterval: 15, maxHours: 4, minutes: Binding(
+                        WheelDurationPicker(minuteInterval: 15, range: 0...240, minutes: Binding(
                             get: { settings.planDraft.breakMin },
                             set: { settings.planDraft = Engine.setPlan(settings.planDraft, field: .breakMin, value: $0) }
                         ))

@@ -16,16 +16,18 @@ struct AddEntrySheet: View {
         nonmutating set { model.addEntryDraft = newValue }
     }
 
-    /// Round-trip minutes-since-midnight through wall-clock COMPONENTS on both
-    /// sides. Building the get side with `startOfDay + minutes*60` (absolute
-    /// seconds) would drift an hour from the set side (minutesIntoDay) on DST
-    /// transition days, making the wheel fight every adjustment.
+    /// Minutes-since-midnight rendered as a wall-clock COMPONENT date (used by
+    /// both the wheel values and their bounds — one construction, one anchor).
+    /// Building it with `startOfDay + minutes*60` (absolute seconds) would
+    /// drift an hour from the commit side (minutesIntoDay) on DST days.
+    private func timeOfDay(_ minutes: Int) -> Date {
+        Calendar.current.date(bySettingHour: minutes / 60, minute: minutes % 60, second: 0,
+                              of: TimeMath.startOfDay(.now)) ?? .now
+    }
+
     private func timeBinding(_ field: Engine.AddField, minutes: Int) -> Binding<Date> {
         Binding(
-            get: {
-                Calendar.current.date(bySettingHour: minutes / 60, minute: minutes % 60, second: 0,
-                                      of: TimeMath.startOfDay(.now)) ?? .now
-            },
+            get: { timeOfDay(minutes) },
             set: { draft = Engine.setAddEntry(draft, field: field, value: TimeMath.minutesIntoDay($0)) }
         )
     }
@@ -76,7 +78,12 @@ struct AddEntrySheet: View {
                     tag: WheelTag.clockIn,
                     expanded: $expandedWheel
                 ) {
+                    // Dynamic bounds mirror Engine.setAddEntry's clamps: the
+                    // wheel must not offer a clock-in the commit would reject
+                    // (in ≤ out − 30m), and they move when clock-out moves.
                     WheelDatePicker(mode: .time, minuteInterval: 15,
+                                    minimumDate: timeOfDay(0),
+                                    maximumDate: timeOfDay(draft.outMin - 30),
                                     date: timeBinding(.inMin, minutes: draft.inMin))
                 }
                 ExpandableStepperRow(
@@ -88,6 +95,8 @@ struct AddEntrySheet: View {
                     expanded: $expandedWheel
                 ) {
                     WheelDatePicker(mode: .time, minuteInterval: 15,
+                                    minimumDate: timeOfDay(draft.inMin + 30),
+                                    maximumDate: timeOfDay(24 * 60 - 15),
                                     date: timeBinding(.outMin, minutes: draft.outMin))
                 }
                 ExpandableStepperRow(
@@ -99,7 +108,12 @@ struct AddEntrySheet: View {
                     tag: WheelTag.breakTime,
                     expanded: $expandedWheel
                 ) {
-                    WheelDurationPicker(minuteInterval: 15, maxHours: 4, minutes: Binding(
+                    // The break maximum is DYNAMIC — out − in − 15m (mockup /
+                    // Engine rule), not the plan card's fixed 4h: the default
+                    // 11:00–18:00 entry must offer up to 6h45.
+                    WheelDurationPicker(minuteInterval: 15,
+                                        range: 0...(draft.outMin - draft.inMin - 15),
+                                        minutes: Binding(
                         get: { draft.breakMin },
                         set: { draft = Engine.setAddEntry(draft, field: .breakMin, value: $0) }
                     ))
