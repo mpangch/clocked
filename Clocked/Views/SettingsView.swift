@@ -1,11 +1,16 @@
 import CoreLocation
 import SwiftUI
+import UniformTypeIdentifiers
 import UserNotifications
 
 /// Third tab — the mockup's Widgets tab becomes Settings on iOS:
 /// weekly goal, Work location / geofence, notifications.
 @MainActor
 struct SettingsView: View {
+    @State private var exportDocument: CSVBackupDocument?
+    @State private var showImporter = false
+    @State private var dataStatus: String?
+
     var body: some View {
         let settings = AppSettings.shared
         let geoState = GeofenceManager.State.shared
@@ -24,6 +29,7 @@ struct SettingsView: View {
                 goalCard(settings)
                 locationCard(settings, geoState)
                 notificationsCard
+                dataCard
 
                 Text("Widgets: add the Clocked widget from the Home Screen gallery — buttons work without opening the app.")
                     .font(.system(size: 12))
@@ -180,5 +186,104 @@ struct SettingsView: View {
         case .authorized, .provisional, .ephemeral: return true
         default: return false
         }
+    }
+
+    // MARK: - Data (CSV backup: reinstalls/sideload overwrites can drop the store)
+
+    private var dataCard: some View {
+        Card(title: "Data") {
+            HStack {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Back up to CSV")
+                        .font(.system(size: 15, weight: .medium))
+                    Text("every shift, incl. paid breaks — save it in Files")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Theme.tertiary)
+                }
+                Spacer()
+                MiniButton(title: "Export") { prepareExport() }
+            }
+            .padding(.vertical, 6)
+            HStack {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Restore from CSV")
+                        .font(.system(size: 15, weight: .medium))
+                    Text("skips shifts that already exist")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Theme.tertiary)
+                }
+                Spacer()
+                MiniButton(title: "Import") { showImporter = true }
+            }
+            .padding(.vertical, 6)
+            if let dataStatus {
+                Text(dataStatus)
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.secondary)
+            }
+        }
+        .fileExporter(
+            isPresented: Binding(get: { exportDocument != nil },
+                                 set: { if !$0 { exportDocument = nil } }),
+            document: exportDocument,
+            contentType: .commaSeparatedText,
+            defaultFilename: "clocked-backup-\(TimeMath.dayKey(.now))"
+        ) { result in
+            switch result {
+            case .success: dataStatus = "Backup saved."
+            case .failure(let error): dataStatus = "Export failed: \(error.localizedDescription)"
+            }
+        }
+        .fileImporter(
+            isPresented: $showImporter,
+            allowedContentTypes: [.commaSeparatedText, .plainText, .text]
+        ) { result in
+            switch result {
+            case .success(let url): importBackup(from: url)
+            case .failure(let error): dataStatus = "Import failed: \(error.localizedDescription)"
+            }
+        }
+    }
+
+    /// Full-history export (user-initiated — the one place an unbounded fetch
+    /// is exactly the point).
+    private func prepareExport() {
+        let store = TrackerStore.shared
+        let text = Engine.csv(history: store.historySnapshots,
+                              live: store.liveSnapshot,
+                              from: .distantPast, to: .distantFuture,
+                              at: .now)
+        exportDocument = CSVBackupDocument(text: text)
+    }
+
+    private func importBackup(from url: URL) {
+        let secured = url.startAccessingSecurityScopedResource()
+        defer { if secured { url.stopAccessingSecurityScopedResource() } }
+        guard let text = try? String(contentsOf: url, encoding: .utf8) else {
+            dataStatus = "Import failed: couldn't read that file."
+            return
+        }
+        let parsed = Engine.parseCSVBackup(text)
+        let outcome = TrackerStore.shared.importShifts(parsed.shifts)
+        var parts = ["Imported \(outcome.inserted) shift\(outcome.inserted == 1 ? "" : "s")"]
+        if outcome.duplicates > 0 { parts.append("\(outcome.duplicates) already present") }
+        if parsed.skippedRows > 0 { parts.append("\(parsed.skippedRows) row\(parsed.skippedRows == 1 ? "" : "s") skipped") }
+        dataStatus = parts.joined(separator: " · ") + "."
+    }
+}
+
+/// Plain-text CSV FileDocument for the backup exporter.
+struct CSVBackupDocument: FileDocument {
+    static let readableContentTypes: [UTType] = [.commaSeparatedText, .plainText]
+    var text: String
+
+    init(text: String) { self.text = text }
+
+    init(configuration: ReadConfiguration) throws {
+        text = String(data: configuration.file.regularFileContents ?? Data(), encoding: .utf8) ?? ""
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: Data(text.utf8))
     }
 }

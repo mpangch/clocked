@@ -5,7 +5,7 @@ import XCTest
 // live shift appended with "(active)"; final total row; rows sorted by clockIn.
 final class CSVTests: XCTestCase {
 
-    private let header = "date,clock_in,clock_out,break_minutes,paid_hours"
+    private let header = "date,clock_in,clock_out,break_minutes,break_start,paid_hours"
 
     func testFullExportGoldenString() {
         // Week Mon 2026-07-13 ..< Mon 2026-07-20.
@@ -29,11 +29,11 @@ final class CSVTests: XCTestCase {
                              at: at, calendar: testCal)
         let expected = [
             header,
-            "2026-07-13,09:00,16:00,30,7.00",
-            "2026-07-14,08:05,14:35,0,6.50",
-            "2026-07-16,09:00,15:00,51,6.00",
-            "2026-07-17,09:00,(active),0,2.25",
-            "total,,,,21.75",   // paid: 7.0 + 6.5 + 6.0 + 2.25 (breaks are paid)
+            "2026-07-13,09:00,16:00,30,12:00,7.00",
+            "2026-07-14,08:05,14:35,0,,6.50",
+            "2026-07-16,09:00,15:00,51,12:00,6.00",
+            "2026-07-17,09:00,(active),0,,2.25",
+            "total,,,,,21.75",   // paid: 7.0 + 6.5 + 6.0 + 2.25 (breaks are paid)
         ].joined(separator: "\n")
         XCTAssertEqual(csv, expected)
     }
@@ -46,7 +46,7 @@ final class CSVTests: XCTestCase {
         let csv = Engine.csv(history: outOfRange, live: nil,
                              from: date(2026, 7, 13), to: date(2026, 7, 20),
                              at: date(2026, 7, 19, 12, 0), calendar: testCal)
-        XCTAssertEqual(csv, header + "\ntotal,,,,0.00")
+        XCTAssertEqual(csv, header + "\ntotal,,,,,0.00")
     }
 
     func testLiveShiftOutsidePeriodExcluded() {
@@ -59,8 +59,8 @@ final class CSVTests: XCTestCase {
                              at: date(2026, 7, 20, 10, 0), calendar: testCal)
         let expected = [
             header,
-            "2026-07-13,09:00,16:00,30,7.00",
-            "total,,,,7.00",
+            "2026-07-13,09:00,16:00,30,12:00,7.00",
+            "total,,,,,7.00",
         ].joined(separator: "\n")
         XCTAssertEqual(csv, expected)
         XCTAssertFalse(csv.contains("(active)"))

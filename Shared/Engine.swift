@@ -403,16 +403,22 @@ enum Engine {
             : ("Goal met · **+\(Fmt.dur(-diff))** over", true)
     }
 
-    // MARK: CSV export (mockup: exportCSV)
+    // MARK: CSV export (mockup: exportCSV) + backup import
 
-    /// One row per completed shift with clockIn in [from, to), then the live shift, then a total row.
+    /// One row per completed shift with clockIn in [from, to), then the live
+    /// shift, then a total row. `break_start` (first break's HH:mm, empty when
+    /// none) makes the format round-trippable as a backup: import reconstructs
+    /// the break at its real time instead of guessing.
     static func csv(history: [SessionSnapshot],
                     live: SessionSnapshot?,
                     from: Date, to: Date,
                     at: Date,
                     calendar: Calendar = .current) -> String {
-        var rows: [[String]] = [["date", "clock_in", "clock_out", "break_minutes", "paid_hours"]]
+        var rows: [[String]] = [["date", "clock_in", "clock_out", "break_minutes", "break_start", "paid_hours"]]
         var total: TimeInterval = 0
+        func breakStartField(_ s: SessionSnapshot) -> String {
+            s.segments.first(where: \.isBreak).map { Fmt.time24($0.start, calendar: calendar) } ?? ""
+        }
         for s in history.sorted(by: { $0.clockIn < $1.clockIn }) where !s.isLive {
             guard s.clockIn >= from && s.clockIn < to, let out = s.clockOut else { continue }
             let w = paidDuration(s, at: at)
@@ -422,6 +428,7 @@ enum Engine {
                 Fmt.time24(s.clockIn, calendar: calendar),
                 Fmt.time24(out, calendar: calendar),
                 String(TimeMath.jsRound(breakDuration(s, at: at) / 60)),
+                breakStartField(s),
                 String(format: "%.2f", w / TimeMath.hour),
             ])
         }
@@ -433,10 +440,119 @@ enum Engine {
                 Fmt.time24(live.clockIn, calendar: calendar),
                 "(active)",
                 String(TimeMath.jsRound(breakDuration(live, at: at) / 60)),
+                breakStartField(live),
                 String(format: "%.2f", w / TimeMath.hour),
             ])
         }
-        rows.append(["total", "", "", "", String(format: "%.2f", total / TimeMath.hour)])
+        rows.append(["total", "", "", "", "", String(format: "%.2f", total / TimeMath.hour)])
         return rows.map { $0.joined(separator: ",") }.joined(separator: "\n")
+    }
+
+    // MARK: - CSV backup import
+
+    struct ImportedShift: Equatable {
+        var clockIn: Date
+        var clockOut: Date
+        var segments: [SegmentSnapshot]
+    }
+
+    struct CSVImportResult: Equatable {
+        var shifts: [ImportedShift] = []
+        var skippedRows = 0          // malformed lines ("(active)"/total rows don't count)
+    }
+
+    /// Parse a backup CSV (this app's export format; tolerant of the legacy
+    /// `net_hours` header and a missing `break_start` column). Rules:
+    /// - requires date / clock_in / clock_out columns, matched by header name
+    /// - "total" and "(active)" rows are ignored
+    /// - clock_out ≤ clock_in means the shift crossed midnight (next day)
+    /// - break_minutes > 0 becomes one break segment at break_start when that
+    ///   fits inside the shift, else centered (Add-Entry rule); the break is
+    ///   clamped so at least a minute of work remains on each side
+    /// - malformed rows are counted and skipped, never abort the import
+    static func parseCSVBackup(_ text: String, calendar: Calendar = .current) -> CSVImportResult {
+        var result = CSVImportResult()
+        let lines = text.split(whereSeparator: \.isNewline).map(String.init)
+        guard let headerLine = lines.first else { return result }
+        let header = headerLine.split(separator: ",", omittingEmptySubsequences: false)
+            .map { $0.trimmingCharacters(in: .whitespaces).lowercased() }
+        guard let dateCol = header.firstIndex(of: "date"),
+              let inCol = header.firstIndex(of: "clock_in"),
+              let outCol = header.firstIndex(of: "clock_out") else {
+            result.skippedRows = max(0, lines.count - 1)
+            return result
+        }
+        let breakCol = header.firstIndex(of: "break_minutes")
+        let breakStartCol = header.firstIndex(of: "break_start")
+
+        func minutes(_ field: String) -> Int? {
+            let parts = field.split(separator: ":")
+            guard parts.count == 2, let h = Int(parts[0]), let m = Int(parts[1]),
+                  (0...23).contains(h), (0...59).contains(m) else { return nil }
+            return h * 60 + m
+        }
+
+        for line in lines.dropFirst() {
+            let fields = line.split(separator: ",", omittingEmptySubsequences: false)
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+            guard fields.count > max(dateCol, inCol, outCol) else {
+                if !line.trimmingCharacters(in: .whitespaces).isEmpty { result.skippedRows += 1 }
+                continue
+            }
+            if fields[dateCol] == "total" { continue }
+            if fields[outCol] == "(active)" { continue }
+
+            let dateParts = fields[dateCol].split(separator: "-").compactMap { Int($0) }
+            guard dateParts.count == 3,
+                  let inMin = minutes(fields[inCol]),
+                  let outMinRaw = minutes(fields[outCol]) else {
+                result.skippedRows += 1
+                continue
+            }
+            var comps = DateComponents()
+            comps.year = dateParts[0]; comps.month = dateParts[1]; comps.day = dateParts[2]
+            guard let dayStart = calendar.date(from: comps) else {
+                result.skippedRows += 1
+                continue
+            }
+            func timeOn(_ minutesIntoDay: Int, dayOffset: Int = 0) -> Date? {
+                let day = TimeMath.addDays(dayStart, dayOffset, calendar: calendar)
+                return calendar.date(bySettingHour: minutesIntoDay / 60,
+                                     minute: minutesIntoDay % 60, second: 0, of: day)
+            }
+            let crossesMidnight = outMinRaw <= inMin
+            guard let clockIn = timeOn(inMin),
+                  let clockOut = timeOn(outMinRaw, dayOffset: crossesMidnight ? 1 : 0),
+                  clockOut > clockIn else {
+                result.skippedRows += 1
+                continue
+            }
+
+            let spanMin = Int(clockOut.timeIntervalSince(clockIn) / 60)
+            var breakMin = breakCol.flatMap { $0 < fields.count ? Int(fields[$0]) : nil } ?? 0
+            breakMin = max(0, min(breakMin, spanMin - 2))   // ≥1m work on each side
+
+            var segments: [SegmentSnapshot]
+            if breakMin <= 0 {
+                segments = [SegmentSnapshot(isBreak: false, start: clockIn, end: clockOut)]
+            } else {
+                // Prefer the recorded break start when it fits; else center it.
+                var bsMin: Int? = breakStartCol
+                    .flatMap { $0 < fields.count ? minutes(fields[$0]) : nil }
+                    .map { $0 <= inMin && crossesMidnight ? $0 + 24 * 60 : $0 }
+                    .map { $0 - inMin }                     // offset from clock-in
+                if let off = bsMin, !(off >= 1 && off + breakMin <= spanMin - 1) { bsMin = nil }
+                let offset = bsMin ?? TimeMath.jsRound(Double(spanMin - breakMin) / 2)
+                let bs = clockIn.addingTimeInterval(Double(offset) * 60)
+                let be = bs.addingTimeInterval(Double(breakMin) * 60)
+                segments = [
+                    SegmentSnapshot(isBreak: false, start: clockIn, end: bs),
+                    SegmentSnapshot(isBreak: true, start: bs, end: be),
+                    SegmentSnapshot(isBreak: false, start: be, end: clockOut),
+                ]
+            }
+            result.shifts.append(ImportedShift(clockIn: clockIn, clockOut: clockOut, segments: segments))
+        }
+        return result
     }
 }

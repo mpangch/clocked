@@ -37,6 +37,7 @@
 		6899E168AB7AC8D8E48F3BB7 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB7ED6B910B7B6C8BF5C00B /* NotificationManager.swift */; };
 		6D3E32AD34B1BA1E072E1EB8 /* TrackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 708535070F40D85CA6D38FD3 /* TrackView.swift */; };
 		6E738FDD84F8662A897C9194 /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCD247E3376716D3937A419D /* Engine.swift */; };
+		6E8839B1D4992A82E489A8BC /* BackupRoundTripTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39F4AC3605C84BD4051A8C9F /* BackupRoundTripTests.swift */; };
 		6EFA0B6E1A4DFE1A52F2C3ED /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35044D2F763F346CBB744FD7 /* AppModel.swift */; };
 		7BDF316FA74C42A9208752BF /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCD247E3376716D3937A419D /* Engine.swift */; };
 		7D67765E507F8B8D8524EE1C /* GeofenceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2B62181ABB7CBB8CBAD6CBB /* GeofenceManager.swift */; };
@@ -109,6 +110,7 @@
 		35044D2F763F346CBB744FD7 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		36976D6965E3D0986511EA10 /* EtaAndGoalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EtaAndGoalTests.swift; sourceTree = "<group>"; };
 		37B5EDA0F32E016DAD0C1100 /* Shortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shortcuts.swift; sourceTree = "<group>"; };
+		39F4AC3605C84BD4051A8C9F /* BackupRoundTripTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupRoundTripTests.swift; sourceTree = "<group>"; };
 		3CBE94C7D77BF8541485C962 /* CSVExportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVExportSheet.swift; sourceTree = "<group>"; };
 		4CD95A17ABAD0749C70E54B4 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		571035C40F465623487D3C79 /* AggregationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AggregationTests.swift; sourceTree = "<group>"; };
@@ -159,6 +161,7 @@
 				571035C40F465623487D3C79 /* AggregationTests.swift */,
 				12AD01A093654ED75E901B80 /* AuditDefectRegressionTests.swift */,
 				0A8681EFFD06B766835019BF /* AuditRegressionTests.swift */,
+				39F4AC3605C84BD4051A8C9F /* BackupRoundTripTests.swift */,
 				61704C384B43CBB1E670261E /* BoundedFetchTests.swift */,
 				CD7F2F3F7164FEEAC69132A4 /* CSVTests.swift */,
 				9F3D697B877D803EF419E5DD /* EditAndEntryTests.swift */,
@@ -440,6 +443,7 @@
 				5F35BAA2C515FC17E467EAD3 /* AggregationTests.swift in Sources */,
 				8E9526C0AE2ACF5532E8692D /* AuditDefectRegressionTests.swift in Sources */,
 				3F6B8DCC932F70A37F183256 /* AuditRegressionTests.swift in Sources */,
+				6E8839B1D4992A82E489A8BC /* BackupRoundTripTests.swift in Sources */,
 				CEDE06974971D39934790180 /* BoundedFetchTests.swift in Sources */,
 				48B7246935C4C1D9E1124888 /* CSVTests.swift in Sources */,
 				FC53A53ECF635F95608E8B8D /* EditAndEntryTests.swift in Sources */,

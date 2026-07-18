@@ -196,6 +196,38 @@ final class TrackerStore {
         !shift.isDeleted && shift.modelContext != nil
     }
 
+    // MARK: - CSV backup import
+
+    /// Insert parsed backup shifts, skipping any whose clock-in minute already
+    /// exists (re-importing the same backup is a no-op, and restoring onto a
+    /// device that already has some data never duplicates it).
+    @discardableResult
+    func importShifts(_ imported: [Engine.ImportedShift]) -> (inserted: Int, duplicates: Int) {
+        guard !imported.isEmpty else { return (0, 0) }
+        let minDate = imported.map(\.clockIn).min()!.addingTimeInterval(-120)
+        let maxDate = imported.map(\.clockOut).max()!.addingTimeInterval(120)
+        // CSV times are minute-precision; recorded shifts carry seconds — key
+        // both by the floored minute so a round-trip matches its own source.
+        var existing = Set(completedShifts(from: minDate, to: maxDate)
+            .map { Int($0.clockIn.timeIntervalSince1970 / 60) })
+        if let live = liveShift { existing.insert(Int(live.clockIn.timeIntervalSince1970 / 60)) }
+
+        var inserted = 0, duplicates = 0
+        for s in imported {
+            let key = Int(s.clockIn.timeIntervalSince1970 / 60)
+            if existing.contains(key) { duplicates += 1; continue }
+            existing.insert(key)
+            let shift = Shift(clockIn: s.clockIn, clockOut: s.clockOut)
+            context.insert(shift)
+            for seg in s.segments {
+                shift.segments.append(Segment(isBreak: seg.isBreak, start: seg.start, end: seg.end))
+            }
+            inserted += 1
+        }
+        persistAndNotify()
+        return (inserted, duplicates)
+    }
+
     func deleteShift(_ shift: Shift) {
         context.delete(shift)
         persistAndNotify()
