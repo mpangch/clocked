@@ -89,37 +89,38 @@ final class StatsSuggestionTests: XCTestCase {
         let st = makeStats(avgNetMin: 405, avgBreakMin: 55, breakCount: 1, breakFreq: 1.0,
                            typBreakStartMin: 840, typBreakDurMin: 55)
         XCTAssertEqual(Engine.suggestionText(st, weekday: 2),
-                       "Tuesdays you usually work **6h 45m**, with a ~**55m** break around **2:00 PM**.")
+                       "Tuesdays you usually work **7h 40m**, with a ~**55m** break around **2:00 PM**.")
     }
 
     func testSuggestionTextVariants() {
-        // breakCount ≥ 2 uses the number; avgNetMin 367 → round5 → 365 ("6h 05m"),
-        // typBreakDurMin 23 → round5 → 25.
+        // breakCount ≥ 2 uses the number; paid span 367 + 50 (default avgBreakMin)
+        // = 417 → round5 → 415 ("6h 55m"); typBreakDurMin 23 → round5 → 25.
         let two = makeStats(avgNetMin: 367, breakCount: 2, breakFreq: 2.0,
                             typBreakStartMin: 750, typBreakDurMin: 23)
         XCTAssertEqual(Engine.suggestionText(two, weekday: 4),
-                       "Thursdays you usually work **6h 05m**, with 2 ~**25m** break around **12:30 PM**.")
+                       "Thursdays you usually work **6h 55m**, with 2 ~**25m** break around **12:30 PM**.")
         // "usually without breaks" ONLY when no break info AND breakFreq < 0.3.
         let rare = makeStats(avgNetMin: 420, breakCount: 0, breakFreq: 0.2,
                              typBreakStartMin: nil, typBreakDurMin: 0)
         XCTAssertEqual(Engine.suggestionText(rare, weekday: 1),
-                       "Mondays you usually work **7h 00m**, usually without breaks.")
+                       "Mondays you usually work **7h 50m**, usually without breaks.")
         // No break info but breakFreq ≥ 0.3 → plain base + ".".
         let sometimes = makeStats(avgNetMin: 390, breakCount: 0, breakFreq: 0.4,
                                   typBreakStartMin: nil, typBreakDurMin: 0)
         XCTAssertEqual(Engine.suggestionText(sometimes, weekday: 5),
-                       "Fridays you usually work **6h 30m**.")
+                       "Fridays you usually work **7h 20m**.")
         XCTAssertNil(Engine.suggestionText(nil, weekday: 2))
     }
 
     func testPlanDraftFromStats() {
-        // round5 on both fields: 367 → 365, 52 → 50.
+        // Paid-breaks revision: shift length = paid span = round5(367 + 52) = 420;
+        // break time still round5(52) = 50 (it lives INSIDE the span).
         let st = makeStats(avgNetMin: 367, avgBreakMin: 52, breakCount: 1)
-        XCTAssertEqual(Engine.planDraft(from: st), PlanDraft(workMin: 365, breakCount: 1, breakMin: 50))
+        XCTAssertEqual(Engine.planDraft(from: st), PlanDraft(workMin: 420, breakCount: 1, breakMin: 50))
         // breakCount 0 zeroes breakMin even when avgBreakMin > 0.
         let noBreaks = makeStats(avgNetMin: 420, avgBreakMin: 47, breakCount: 0, breakFreq: 0.1,
                                  typBreakStartMin: nil, typBreakDurMin: 0)
-        XCTAssertEqual(Engine.planDraft(from: noBreaks), PlanDraft(workMin: 420, breakCount: 0, breakMin: 0))
+        XCTAssertEqual(Engine.planDraft(from: noBreaks), PlanDraft(workMin: 465, breakCount: 0, breakMin: 0))
     }
 
     // Window is [typ − 20, typ + 45] inclusive; typ = 840 (2:00 PM).

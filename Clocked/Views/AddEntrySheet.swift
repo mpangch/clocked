@@ -34,7 +34,8 @@ struct AddEntrySheet: View {
 
     var body: some View {
         let date = TimeMath.addDays(TimeMath.startOfDay(.now), draft.dayOffset)
-        let netMin = max(0, draft.outMin - draft.inMin - draft.breakMin)
+        // Breaks are paid: paid hours = clock-out − clock-in, break included.
+        let paidMin = max(0, draft.outMin - draft.inMin)
 
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
@@ -100,7 +101,7 @@ struct AddEntrySheet: View {
                                     date: timeBinding(.outMin, minutes: draft.outMin))
                 }
                 ExpandableStepperRow(
-                    label: "Unpaid break",
+                    label: "Paid break",
                     sublabel: "inserted mid-shift",
                     value: Fmt.hm(draft.breakMin),
                     onMinus: { draft = Engine.stepAddEntry(draft, field: .breakMin, dir: -1) },
@@ -119,7 +120,7 @@ struct AddEntrySheet: View {
                     ))
                 }
 
-                Text(.init("Net hours: **\(Fmt.hm(netMin))**"))
+                Text(.init("Paid hours: **\(Fmt.hm(paidMin))**"))
                     .font(.system(size: 12.5))
                     .foregroundStyle(Theme.tertiary)
                     .frame(maxWidth: .infinity)

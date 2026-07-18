@@ -26,6 +26,13 @@ enum Engine {
         s.segments.filter(\.isBreak).count
     }
 
+    /// Paid-breaks revision: breaks are paid, so paid time is the whole
+    /// segment coverage (work + breaks). Unpaid pauses are clock-outs, whose
+    /// gaps fall between sessions and are excluded naturally.
+    static func paidDuration(_ s: SessionSnapshot, at: Date) -> TimeInterval {
+        workDuration(s, at: at) + breakDuration(s, at: at)
+    }
+
     static func state(live: SessionSnapshot?) -> TrackState {
         guard let live, let last = live.segments.last else { return .out }
         return last.isBreak ? .onBreak : .working
@@ -92,6 +99,15 @@ enum Engine {
                            sessions: sessions, at: at, calendar: calendar).work
     }
 
+    /// Paid hours this Monday-based week — what the goal cards and widget bar
+    /// compare against the weekly goal under the paid-breaks revision.
+    static func weekPaid(sessions: [SessionSnapshot], at: Date, calendar: Calendar = .current) -> TimeInterval {
+        let m = TimeMath.monday(of: at, calendar: calendar)
+        let t = rangeTotals(from: m, to: TimeMath.addDays(m, 7, calendar: calendar),
+                            sessions: sessions, at: at, calendar: calendar)
+        return t.paid
+    }
+
     // MARK: learned behavior (mockup: statsFor, plus CLAUDE.md's rolling 8-week window)
 
     /// Per-weekday stats over completed sessions within the rolling 8-week window ending at `reference`.
@@ -143,7 +159,7 @@ enum Engine {
     /// mockup: suggestionText — returns markdown ("**bold**") or nil when no history.
     static func suggestionText(_ st: WeekdayStats?, weekday: Int) -> String? {
         guard let st else { return nil }
-        var t = "\(Fmt.weekdays[weekday])s you usually work **\(Fmt.hm(TimeMath.round5(st.avgNetMin)))**"
+        var t = "\(Fmt.weekdays[weekday])s you usually work **\(Fmt.hm(TimeMath.round5(st.avgPaidMin)))**"
         if st.breakCount > 0, let typ = st.typBreakStartMin {
             let countWord = st.breakCount == 1 ? "a" : "\(st.breakCount)"
             t += ", with \(countWord) ~**\(Fmt.dur(Double(TimeMath.round5(st.typBreakDurMin)) * 60))** break around **\(Fmt.minToClock(typ))**"
@@ -156,7 +172,7 @@ enum Engine {
     /// mockup: usePlanSuggestion — fill the plan draft from stats
     static func planDraft(from st: WeekdayStats) -> PlanDraft {
         PlanDraft(
-            workMin: TimeMath.round5(st.avgNetMin),
+            workMin: TimeMath.round5(st.avgPaidMin),
             breakCount: st.breakCount,
             breakMin: st.breakCount > 0 ? TimeMath.round5(st.avgBreakMin) : 0
         )
@@ -164,9 +180,11 @@ enum Engine {
 
     // MARK: plan / ring / ETA (mockup: plannedWorkMs / etaText)
 
-    /// Planned work duration: committed plan → learned weekday average → 7h fallback.
+    /// Planned paid shift length: committed plan → learned weekday average →
+    /// 7h fallback. Paid breaks live INSIDE this span (paid-breaks revision),
+    /// so "hours on the clock" is literal.
     static func plannedWorkDuration(planWorkMin: Int?, stats: WeekdayStats?) -> TimeInterval {
-        Double(planWorkMin ?? stats?.avgNetMin ?? 7 * 60) * 60
+        Double(planWorkMin ?? stats?.avgPaidMin ?? 7 * 60) * 60
     }
 
     /// mockup: etaText
@@ -393,11 +411,11 @@ enum Engine {
                     from: Date, to: Date,
                     at: Date,
                     calendar: Calendar = .current) -> String {
-        var rows: [[String]] = [["date", "clock_in", "clock_out", "break_minutes", "net_hours"]]
+        var rows: [[String]] = [["date", "clock_in", "clock_out", "break_minutes", "paid_hours"]]
         var total: TimeInterval = 0
         for s in history.sorted(by: { $0.clockIn < $1.clockIn }) where !s.isLive {
             guard s.clockIn >= from && s.clockIn < to, let out = s.clockOut else { continue }
-            let w = workDuration(s, at: at)
+            let w = paidDuration(s, at: at)
             total += w
             rows.append([
                 TimeMath.dayKey(s.clockIn, calendar: calendar),
@@ -408,7 +426,7 @@ enum Engine {
             ])
         }
         if let live, live.clockIn >= from && live.clockIn < to {
-            let w = workDuration(live, at: at)
+            let w = paidDuration(live, at: at)
             total += w
             rows.append([
                 TimeMath.dayKey(live.clockIn, calendar: calendar),

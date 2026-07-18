@@ -45,7 +45,7 @@ final class Shift {
 
 @Model
 final class Segment {
-    var isBreak: Bool            // false = work, true = unpaid break
+    var isBreak: Bool            // false = work, true = paid break
     var start: Date
     var end: Date?               // nil = open segment
     var shift: Shift?

@@ -163,7 +163,7 @@ struct TrackView: View {
 
     private func ring(live: SessionSnapshot?, liveShift: Shift?, state: TrackState,
                       stats: WeekdayStats?, all: [SessionSnapshot], now: Date) -> some View {
-        let net = live.map { Engine.workDuration($0, at: now) } ?? 0
+        let net = live.map { Engine.paidDuration($0, at: now) } ?? 0
         let planned = Engine.plannedWorkDuration(planWorkMin: liveShift?.plannedWorkMinutes, stats: stats)
         let progress = state == .out ? 0 : Engine.ringProgress(netWorked: net, plannedWork: planned)
         let ringColor = state == .onBreak ? Theme.amber : Theme.green
@@ -228,7 +228,7 @@ struct TrackView: View {
                         .kerning(-0.5)
                         .foregroundStyle(Theme.amberD)
                         .padding(.top, 6)
-                    Text("unpaid · worked \(Fmt.dur(net)) so far")
+                    Text("paid break · \(Fmt.dur(net)) on the clock")
                         .font(.system(size: 15, weight: .medium))
                         .foregroundStyle(Theme.secondary)
                         .padding(.top, 4)
@@ -339,7 +339,9 @@ struct TrackView: View {
 
     private func planCard(stats: WeekdayStats?, now: Date) -> some View {
         let draft = settings.planDraft
-        let finish = now.addingTimeInterval(Double(draft.workMin + draft.breakMin) * 60)
+        // Paid breaks sit INSIDE the shift length, so the finish estimate
+        // is clock-in + shift length (no break extension).
+        let finish = now.addingTimeInterval(Double(draft.workMin) * 60)
         return Card(title: "Today’s plan") {
             if let sug = Engine.suggestionText(stats, weekday: TimeMath.jsWeekday(now)) {
                 HStack(spacing: 10) {
@@ -378,7 +380,7 @@ struct TrackView: View {
                 }
                 Divider().overlay(Theme.separator)
                 StepperRow(label: "Breaks",
-                           sublabel: "unpaid, won’t clock you out",
+                           sublabel: "paid, won’t clock you out",
                            value: "\(draft.breakCount)",
                            onMinus: { stepPlan(.breakCount, -1) },
                            onPlus: { stepPlan(.breakCount, +1) })
@@ -414,7 +416,7 @@ struct TrackView: View {
     // MARK: this week card
 
     private func weekCard(all: [SessionSnapshot], now: Date) -> some View {
-        let worked = Engine.weekWorked(sessions: all, at: now)
+        let worked = Engine.weekPaid(sessions: all, at: now)
         let goalSeconds = settings.weeklyGoalMinutes * 60
         let need = Engine.goalNeed(worked: worked, goal: goalSeconds)
         return Card(title: "This week") {
@@ -523,7 +525,7 @@ struct ClockOutSheet: View {
     private func sheetContent(live: SessionSnapshot) -> some View {
         let now = Date.now
         let weekStart = TimeMath.monday(of: now)
-        let weekAfter = Engine.weekWorked(
+        let weekAfter = Engine.weekPaid(
             sessions: store.allSnapshots(from: weekStart, to: TimeMath.addDays(weekStart, 7)),
             at: now)
         let goalMinutes = Int(AppSettings.shared.weeklyGoalMinutes)
@@ -541,11 +543,11 @@ struct ClockOutSheet: View {
                 Divider().overlay(Theme.separator)
                 SummaryRow(key: "Clocking out", value: Fmt.time(now))
                 Divider().overlay(Theme.separator)
-                SummaryRow(key: "Unpaid breaks",
+                SummaryRow(key: "Paid breaks",
                            value: "\(Engine.breakCount(live)) · \(Fmt.dur(Engine.breakDuration(live, at: now)))")
                 Divider().overlay(Theme.separator)
-                SummaryRow(key: "Hours worked",
-                           value: Fmt.dur(Engine.workDuration(live, at: now)),
+                SummaryRow(key: "Paid hours",
+                           value: Fmt.dur(Engine.paidDuration(live, at: now)),
                            valueColor: Theme.greenD)
                 Divider().overlay(Theme.separator)
                 SummaryRow(key: "Week after this",

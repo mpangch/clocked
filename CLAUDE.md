@@ -26,6 +26,9 @@ Personal hour-tracking app for one user, one job. **The interactive mockup at `d
 ```
 Invariants: exactly one open segment while a shift is active; a break never ends the shift; net hours = Σ work segments; break time is excluded everywhere. A shift belongs to the calendar day of `clockIn` (mockup behavior — do not split at midnight for v1).
 
+
+**Paid-breaks revision (2026-07-15 — overrides the mockup and any conflicting line in this file):** in-shift breaks are **paid**. Paid hours = clock-in → clock-out = Σ work + break segments, and every pay-facing number (day/week/period totals, weekly goal, CSV `paid_hours`, the big timer, ring progress, ETA) uses paid time. For an *unpaid* break the user simply clocks out and clocks back in later — multiple sessions per day are the normal pattern and sum per day. The work/break segmentation remains for the break nudge, learned stats, review detail, and CSV `break_minutes`. The planned "shift length" contains its paid breaks (finish ≈ clock-in + shift length), suggestion spans are paid time, and UI copy reads "Paid break(s)".
+
 Settings (UserDefaults via App Group): `weeklyGoalHours` (Double, default 32.5, range 5–80, 0.5 steps), `geofenceEnabled` (default true), `awayThresholdMinutes` (default 15, range 5–120, 5-min steps), plan draft defaults.
 
 ## Core behaviors (acceptance criteria)
@@ -48,7 +51,7 @@ Settings (UserDefaults via App Group): `weeklyGoalHours` (Double, default 32.5, 
 - Day list (newest first): weekday+date, first-in – last-out, session count, net hours, break total. Tap → day detail.
 - Day detail sheet: proportional timeline (green work / amber break / gaps), per-session **clock-in and clock-out steppers (15m)** for finished shifts (clamps: in ≤ first-segment-end − 5m; out ≥ last-segment-start + 5m), segment list, Delete session, day totals.
 - **Add entry** sheet (＋ in Review): date (up to 60 days back), clock in, clock out (≥ in + 30m), unpaid break total (inserted as one centered break segment). 
-- **Export CSV** for the visible period: header `date,clock_in,clock_out,break_minutes,net_hours`, one row per shift (24h times), active shift as `(active)`, final `total` row. Share via ShareLink/fileExporter.
+- **Export CSV** for the visible period: header `date,clock_in,clock_out,break_minutes,paid_hours`, one row per shift (24h times), active shift as `(active)`, final `total` row. Share via ShareLink/fileExporter.
 
 - Every time/date/duration value behind a stepper (plan shift length & break time, day-detail clock in/out, all four add-entry fields, geo clock-out finish time) is also tappable: it expands an inline wheel picker (wheel pickers; 1m precision for day-detail fixes, 15m for plan/add-entry, 5m for the geo finish time) clamped to the same limits as the steppers.
 

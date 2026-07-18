@@ -45,12 +45,18 @@ struct DayTotals: Equatable {
     var first: Date?
     var last: Date?
     var sessionCount: Int = 0
+
+    /// Paid-breaks revision: breaks are PAID, so paid time = work + breaks
+    /// (an unpaid pause is a clock-out — its gap is naturally excluded).
+    var paid: TimeInterval { work + brk }
 }
 
 struct RangeTotals: Equatable {
     var work: TimeInterval = 0
     var brk: TimeInterval = 0
     var daysWithWork: Int = 0
+
+    var paid: TimeInterval { work + brk }
 }
 
 struct WeekdayStats: Equatable {
@@ -62,6 +68,10 @@ struct WeekdayStats: Equatable {
     var avgStartMin: Int         // minutes since midnight
     var typBreakStartMin: Int?   // minutes since midnight, nil if never breaks
     var typBreakDurMin: Int
+
+    /// Paid-breaks revision: the "you usually work…" span and the planned-
+    /// shift fallback are paid time (work + paid breaks).
+    var avgPaidMin: Int { avgNetMin + avgBreakMin }
 }
 
 enum ReviewMode: String, CaseIterable, Equatable {

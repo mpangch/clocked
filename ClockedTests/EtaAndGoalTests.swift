@@ -19,11 +19,14 @@ final class EtaAndGoalTests: XCTestCase {
                        "planned hours complete")
     }
 
-    // plannedWorkMs: explicit plan → learned weekday average → 7h fallback.
+    // plannedWorkMs: explicit plan → learned weekday PAID average → 7h fallback.
     func testPlannedWorkDurationFallbackChain() {
         XCTAssertEqual(Engine.plannedWorkDuration(planWorkMin: 400, stats: makeStats(avgNetMin: 380)),
                        400 * 60)
+        // Fallback is the paid span: 380 net + 50 break (makeStats default).
         XCTAssertEqual(Engine.plannedWorkDuration(planWorkMin: nil, stats: makeStats(avgNetMin: 380)),
+                       430 * 60)
+        XCTAssertEqual(Engine.plannedWorkDuration(planWorkMin: nil, stats: makeStats(avgNetMin: 380, avgBreakMin: 0)),
                        380 * 60)
         XCTAssertEqual(Engine.plannedWorkDuration(planWorkMin: nil, stats: nil), 420 * 60)
     }

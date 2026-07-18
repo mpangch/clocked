@@ -130,7 +130,7 @@ struct ClockedLockScreenView: View {
 
     private var sub: String {
         state.isOnBreak
-            ? "unpaid · worked " + Fmt.dur(state.netWorkedAtBreakStart)
+            ? "paid break · since " + Fmt.time(state.clockIn)
             : "since " + Fmt.time(state.clockIn)
     }
 }

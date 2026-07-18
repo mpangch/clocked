@@ -49,7 +49,7 @@ struct ReviewView: View {
 
                 periodNav(from: from, to: to)
                 statRow(tot)
-                goalProgressCard(worked: tot.work, goal: goal)
+                goalProgressCard(worked: tot.paid, goal: goal)
                 chartCard(from: from, to: to, all: all, byDay: byDay, now: now)
                 goalSettingCard
                 daysHeader(from: from, to: to, now: now)
@@ -118,9 +118,9 @@ struct ReviewView: View {
 
     private func statRow(_ tot: RangeTotals) -> some View {
         HStack(spacing: 10) {
-            statCard(Fmt.dur(tot.work), "Worked", Theme.greenD)
+            statCard(Fmt.dur(tot.paid), "Paid", Theme.greenD)
             statCard(Fmt.dur(tot.brk), "Breaks", Theme.amberD)
-            statCard(tot.daysWithWork > 0 ? Fmt.dur(tot.work / Double(tot.daysWithWork)) : "—",
+            statCard(tot.daysWithWork > 0 ? Fmt.dur(tot.paid / Double(tot.daysWithWork)) : "—",
                      "Avg / day", Theme.label)
         }
     }
@@ -274,7 +274,7 @@ struct ReviewView: View {
 
             HStack(spacing: 14) {
                 legendItem(Theme.green, "Worked")
-                legendItem(Theme.amber, "Unpaid break")
+                legendItem(Theme.amber, "Paid break")
             }
             .padding(.top, 2)
         }
@@ -391,7 +391,7 @@ struct ReviewView: View {
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 1) {
-                    Text(Fmt.dur(t.work))
+                    Text(Fmt.dur(t.paid))
                         .font(.system(size: 17, weight: .heavy))
                         .monospacedDigit()
                         .foregroundStyle(Theme.label)

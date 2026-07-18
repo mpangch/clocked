@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0776FB0E9D944C3DBB844BDC /* PaidBreaksTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45DC2EEC9A49022136AB653 /* PaidBreaksTests.swift */; };
 		0B667B4B9EE1DDAA2A5E9AB2 /* AddEntrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 072EA5459B6C666FBC391DCE /* AddEntrySheet.swift */; };
 		0EFA6D048D5ED0A770A4C71A /* DayDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D144D6562E6C839A631F6E3A /* DayDetailSheet.swift */; };
 		20D9B4ECF19C7F850B057771 /* ClockedActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15D4A0C2AB4BE93A2717DD20 /* ClockedActivityAttributes.swift */; };
@@ -146,6 +147,7 @@
 		E84D7A64770DEF9C7CA3D390 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		F065D751D8FFDD67BFFFBCC9 /* TimeMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeMath.swift; sourceTree = "<group>"; };
 		F1B227015C7178BC00A5D9B2 /* ClockedWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClockedWidgets.entitlements; sourceTree = "<group>"; };
+		F45DC2EEC9A49022136AB653 /* PaidBreaksTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaidBreaksTests.swift; sourceTree = "<group>"; };
 		F5D888325F6A5D9DF649561C /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
 		FE778A20DB2261C6BBF84E31 /* SegmentMathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentMathTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -161,6 +163,7 @@
 				CD7F2F3F7164FEEAC69132A4 /* CSVTests.swift */,
 				9F3D697B877D803EF419E5DD /* EditAndEntryTests.swift */,
 				36976D6965E3D0986511EA10 /* EtaAndGoalTests.swift */,
+				F45DC2EEC9A49022136AB653 /* PaidBreaksTests.swift */,
 				FE778A20DB2261C6BBF84E31 /* SegmentMathTests.swift */,
 				F5D888325F6A5D9DF649561C /* SmokeTests.swift */,
 				B50418F3A2D4D16B4614BAA0 /* StatsSuggestionTests.swift */,
@@ -441,6 +444,7 @@
 				48B7246935C4C1D9E1124888 /* CSVTests.swift in Sources */,
 				FC53A53ECF635F95608E8B8D /* EditAndEntryTests.swift in Sources */,
 				D9A9D4C530D7C2EF393D155C /* EtaAndGoalTests.swift in Sources */,
+				0776FB0E9D944C3DBB844BDC /* PaidBreaksTests.swift in Sources */,
 				B27E80D070DE2B1005408ADC /* SegmentMathTests.swift in Sources */,
 				9A1946FC50187FBE6DF7E16D /* SmokeTests.swift in Sources */,
 				5BFB8FEDC7E75537FA24E6A1 /* StatsSuggestionTests.swift in Sources */,

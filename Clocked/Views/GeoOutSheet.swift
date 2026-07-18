@@ -78,11 +78,11 @@ struct GeoOutSheet: View {
             }
             .padding(.top, 8)
 
-            SummaryRow(key: "Hours worked",
-                       value: Fmt.dur(Engine.workDuration(live, at: chosen)),
+            SummaryRow(key: "Paid hours",
+                       value: Fmt.dur(Engine.paidDuration(live, at: chosen)),
                        valueColor: Theme.greenD)
             Divider().overlay(Theme.separator)
-            SummaryRow(key: "Unpaid breaks",
+            SummaryRow(key: "Paid breaks",
                        value: Fmt.dur(Engine.breakDuration(live, at: chosen)))
 
             HStack(spacing: 10) {

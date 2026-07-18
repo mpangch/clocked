@@ -72,11 +72,11 @@ struct ClockedProvider: TimelineProvider {
             ClockedEntry(
                 date: at,
                 state: state,
-                todayNet: Engine.dayTotals(on: at, sessions: all, at: at).work,
+                todayNet: Engine.dayTotals(on: at, sessions: all, at: at).paid,
                 clockIn: live?.clockIn,
                 breakTotal: live.map { Engine.breakDuration($0, at: at) } ?? 0,
                 breakStart: state == .onBreak ? live?.segments.last?.start : nil,
-                weekWorked: Engine.weekWorked(sessions: all, at: at),
+                weekWorked: Engine.weekPaid(sessions: all, at: at),
                 goalMinutes: goalMinutes
             )
         }
@@ -153,7 +153,8 @@ struct ClockedSmallWidgetView: View {
     /// (a shift belongs to its clock-in day), so ticking would restart from
     /// 0:00 at every entry — show the static total instead.
     private var accruesToEntryDay: Bool {
-        guard entry.state == .working, let clockIn = entry.clockIn else { return false }
+        // Paid time accrues while working AND on paid break.
+        guard entry.state != .out, let clockIn = entry.clockIn else { return false }
         return TimeMath.dayKey(clockIn) == TimeMath.dayKey(entry.date)
     }
 

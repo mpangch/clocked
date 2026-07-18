@@ -108,7 +108,7 @@ struct DayDetailSheet: View {
                     }
 
                     VStack(spacing: 0) {
-                        SummaryRow(key: "Worked", value: Fmt.dur(totals.work), valueColor: Theme.greenD)
+                        SummaryRow(key: "Paid", value: Fmt.dur(totals.paid), valueColor: Theme.greenD)
                         SummaryRow(key: "Breaks", value: Fmt.dur(totals.brk), valueColor: Theme.amberD)
                     }
                     .padding(.top, 10)
@@ -231,7 +231,7 @@ struct DayDetailSheet: View {
 
             ForEach(segments) { seg in
                 SummaryRow(
-                    key: seg.isBreak ? "Break (unpaid)" : "Work",
+                    key: seg.isBreak ? "Break (paid)" : "Work",
                     value: segmentValue(seg, now: now)
                 )
             }

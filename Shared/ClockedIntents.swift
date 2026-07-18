@@ -19,7 +19,7 @@ struct ClockInIntent: AppIntent, LiveActivityIntent {
 
 struct StartBreakIntent: AppIntent, LiveActivityIntent {
     static let title: LocalizedStringResource = "Take a Break"
-    static let description = IntentDescription("Start an unpaid break without ending the shift.")
+    static let description = IntentDescription("Start a paid break without ending the shift.")
     static let openAppWhenRun: Bool = false
 
     @MainActor

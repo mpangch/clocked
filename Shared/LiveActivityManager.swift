@@ -21,7 +21,7 @@ final class LiveActivityManager {
             }
             return
         }
-        let net = Engine.workDuration(live, at: now)
+        let net = Engine.paidDuration(live, at: now)
         let state = ClockedActivityAttributes.ContentState(
             isOnBreak: last.isBreak,
             clockIn: live.clockIn,
