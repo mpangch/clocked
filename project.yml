@@ -37,7 +37,9 @@ targets:
         NSSupportsLiveActivities: true
         NSLocationWhenInUseUsageDescription: Detects when you arrive at or leave Work to offer clock-in and clock-out prompts.
         NSLocationAlwaysAndWhenInUseUsageDescription: Background location lets Clocked prompt you to clock in when you arrive at Work and clock out after you leave.
-        UIBackgroundModes: [location]
+        # Deliberately NO UIBackgroundModes/location: region monitoring (the only
+        # background location feature) doesn't need it, and the app should not
+        # hold a continuous-background-tracking capability it never uses.
     entitlements:
       path: Clocked/Clocked.entitlements
       properties:

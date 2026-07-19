@@ -26,10 +26,6 @@
 	<string>Detects when you arrive at or leave Work to offer clock-in and clock-out prompts.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>location</string>
-	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 </dict>
