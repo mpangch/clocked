@@ -87,7 +87,7 @@ enum Engine {
             guard let dt = byDay[TimeMath.dayKey(d, calendar: calendar)] else { continue }
             t.work += dt.work
             t.brk += dt.brk
-            if dt.work > 0 { t.daysWithWork += 1 }
+            if dt.paid > 0 { t.daysWithPaid += 1 }
         }
         return t
     }

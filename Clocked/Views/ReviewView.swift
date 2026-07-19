@@ -120,7 +120,7 @@ struct ReviewView: View {
         HStack(spacing: 10) {
             statCard(Fmt.dur(tot.paid), "Paid", Theme.greenD)
             statCard(Fmt.dur(tot.brk), "Breaks", Theme.amberD)
-            statCard(tot.daysWithWork > 0 ? Fmt.dur(tot.paid / Double(tot.daysWithWork)) : "—",
+            statCard(tot.daysWithPaid > 0 ? Fmt.dur(tot.paid / Double(tot.daysWithPaid)) : "—",
                      "Avg / day", Theme.label)
         }
     }
@@ -239,7 +239,7 @@ struct ReviewView: View {
                     .foregroundStyle(Theme.amber.opacity(0.85))
                     .cornerRadius(3)
 
-                    if col.work > 0 {
+                    if col.work + col.brk > 0 {
                         PointMark(
                             x: .value("Period", String(col.idx)),
                             y: .value("Total", (col.work + col.brk) / TimeMath.hour)
@@ -247,7 +247,7 @@ struct ReviewView: View {
                         .symbolSize(0)
                         .opacity(0)
                         .annotation(position: .top, spacing: 2) {
-                            Text(Fmt.h1(col.work))
+                            Text(Fmt.h1(col.work + col.brk))
                                 .font(.system(size: 10, weight: .semibold))
                                 .monospacedDigit()
                                 .foregroundStyle(Theme.tertiary)

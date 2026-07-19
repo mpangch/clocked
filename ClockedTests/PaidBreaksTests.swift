@@ -58,6 +58,22 @@ final class PaidBreaksTests: XCTestCase {
         XCTAssertEqual(Engine.weekPaid(sessions: store.allSnapshots, at: at), 7 * 3600)
     }
 
+    /// Days whose only paid time is break time still count toward Avg/day —
+    /// the counter follows paid hours, not just work segments.
+    func testBreakOnlyDayCountsAsPaidDay() {
+        let sessions = [SessionSnapshot(
+            clockIn: date(2026, 7, 15, 9, 0), clockOut: date(2026, 7, 15, 9, 30),
+            segments: [
+                SegmentSnapshot(isBreak: false, start: date(2026, 7, 15, 9, 0), end: date(2026, 7, 15, 9, 0)),
+                SegmentSnapshot(isBreak: true, start: date(2026, 7, 15, 9, 0), end: date(2026, 7, 15, 9, 30)),
+            ])]
+        let t = Engine.rangeTotals(from: date(2026, 7, 13, 0, 0), to: date(2026, 7, 20, 0, 0),
+                                   sessions: sessions, at: date(2026, 7, 15, 10, 0))
+        XCTAssertEqual(t.work, 0)
+        XCTAssertEqual(t.paid, 1800)
+        XCTAssertEqual(t.daysWithPaid, 1)
+    }
+
     /// A fourth clock-in on the same day works immediately after a clock-out
     /// (the only guard is against a second LIVE shift).
     func testReClockInAfterClockOut() {

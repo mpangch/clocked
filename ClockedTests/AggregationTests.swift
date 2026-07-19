@@ -17,7 +17,7 @@ final class AggregationTests: XCTestCase {
                                    sessions: sessions, at: date(2026, 7, 19, 12, 0), calendar: testCal)
         XCTAssertEqual(t.work, 9 * 3600)
         XCTAssertEqual(t.brk, 1800)
-        XCTAssertEqual(t.daysWithWork, 2)   // Monday counted once despite two sessions
+        XCTAssertEqual(t.daysWithPaid, 2)   // Monday counted once despite two sessions
     }
 
     // Week starts Monday: a Sunday session belongs to the week whose Monday
@@ -83,7 +83,7 @@ final class AggregationTests: XCTestCase {
         XCTAssertEqual(saturday.sessionCount, 0)
         let r = Engine.rangeTotals(from: date(2026, 7, 10), to: date(2026, 7, 13),
                                    sessions: [s], at: at, calendar: testCal)
-        XCTAssertEqual(r.daysWithWork, 1)
+        XCTAssertEqual(r.daysWithPaid, 1)
     }
 
     func testGoalNeed() {

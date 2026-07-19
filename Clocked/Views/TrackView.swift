@@ -240,10 +240,10 @@ struct TrackView: View {
 
     @ViewBuilder
     private func outHint(stats: WeekdayStats?, all: [SessionSnapshot], now: Date) -> some View {
-        let todayWork = Engine.dayTotals(on: now, sessions: all, at: now).work
+        let todayPaid = Engine.dayTotals(on: now, sessions: all, at: now).paid
         Group {
-            if todayWork > 0 {
-                Text(styledMarkdown("Today so far: **\(Fmt.dur(todayWork))**", boldColor: Theme.label))
+            if todayPaid > 0 {
+                Text(styledMarkdown("Today so far: **\(Fmt.dur(todayPaid))**", boldColor: Theme.label))
             } else if let stats {
                 Text("You usually start ~\(Fmt.minToClock(stats.avgStartMin))")
             } else {

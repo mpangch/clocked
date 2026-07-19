@@ -89,6 +89,6 @@ final class BoundedFetchTests: XCTestCase {
         let expectedBreak: TimeInterval = 3600
         XCTAssertEqual(tot.work, expectedWork)
         XCTAssertEqual(tot.brk, expectedBreak)
-        XCTAssertEqual(tot.daysWithWork, 3)
+        XCTAssertEqual(tot.daysWithPaid, 3)
     }
 }

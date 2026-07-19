@@ -54,7 +54,8 @@ struct DayTotals: Equatable {
 struct RangeTotals: Equatable {
     var work: TimeInterval = 0
     var brk: TimeInterval = 0
-    var daysWithWork: Int = 0
+    /// Days with any PAID time (paid-breaks revision) — drives Avg/day.
+    var daysWithPaid: Int = 0
 
     var paid: TimeInterval { work + brk }
 }

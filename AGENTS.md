@@ -46,7 +46,7 @@ Settings (UserDefaults via App Group): `weeklyGoalHours` (Double, default 32.5, 
 
 ### Review
 - Segmented periods: Week / 2 Weeks / Month, with ‹ › navigation (future disabled). Week starts Monday; 2-week periods anchor to a fixed Monday so pages are stable.
-- Stat cards: Worked, Breaks, Avg/day (days with any work). Goal card: worked vs target with progress bar and "Need 〈X〉 more to hit goal" / "Goal met · +〈X〉 over". Targets: week = G; 2-week = 2G; month = G × daysInMonth / 7 (pro-rated).
+- Stat cards: Worked, Breaks, Avg/day (days with any paid time). Goal card: worked vs target with progress bar and "Need 〈X〉 more to hit goal" / "Goal met · +〈X〉 over". Targets: week = G; 2-week = 2G; month = G × daysInMonth / 7 (pro-rated).
 - Chart (Swift Charts): stacked bars — green net work, amber break on top; per-day bars for week/2-week, per-week bars for month; highlight today.
 - Day list (newest first): weekday+date, first-in – last-out, session count, net hours, break total. Tap → day detail.
 - Day detail sheet: proportional timeline (green work / amber break / gaps), per-session **clock-in and clock-out steppers (15m)** for finished shifts (clamps: in ≤ first-segment-end − 5m; out ≥ last-segment-start + 5m), segment list, Delete session, day totals.
