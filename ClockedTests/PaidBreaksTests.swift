@@ -74,6 +74,36 @@ final class PaidBreaksTests: XCTestCase {
         XCTAssertEqual(t.daysWithPaid, 1)
     }
 
+    /// Forgot-to-clock-in fix: the LIVE shift's clock-in can be backdated;
+    /// the paid timer follows, and the clamp refuses times later than now − 5m
+    /// (or past the first segment's end once a break exists).
+    func testLiveClockInBackdating() {
+        let store = TrackerStore(inMemory: true)
+        let now = date(2026, 7, 15, 11, 30)
+        store.clockIn(at: date(2026, 7, 15, 11, 0))
+
+        guard let live = store.liveShift else { return XCTFail("no live shift") }
+        // Backdate to the real start: unbounded earlier.
+        store.setClockIn(live, to: date(2026, 7, 15, 9, 0), now: now)
+        XCTAssertEqual(live.clockIn, date(2026, 7, 15, 9, 0))
+        XCTAssertEqual(live.orderedSegments.first?.start, date(2026, 7, 15, 9, 0))
+        XCTAssertEqual(Engine.paidDuration(live.snapshot, at: now), 2.5 * 3600)
+
+        // Cannot push the start later than now − 5m.
+        store.setClockIn(live, to: date(2026, 7, 15, 12, 0), now: now)
+        XCTAssertEqual(live.clockIn, date(2026, 7, 15, 11, 25))
+
+        // Once a break exists, the first (closed) work segment bounds the edit.
+        store.setClockIn(live, to: date(2026, 7, 15, 9, 0), now: now)
+        store.startBreak(at: date(2026, 7, 15, 11, 0))
+        store.setClockIn(live, to: date(2026, 7, 15, 11, 30), now: date(2026, 7, 15, 12, 0))
+        XCTAssertEqual(live.clockIn, date(2026, 7, 15, 10, 55))   // firstSegEnd − 5m
+
+        // Stepper path shares the same mechanism.
+        store.adjustClockIn(live, direction: -1)
+        XCTAssertEqual(live.clockIn, date(2026, 7, 15, 10, 40))
+    }
+
     /// A fourth clock-in on the same day works immediately after a clock-out
     /// (the only guard is against a second LIVE shift).
     func testReClockInAfterClockOut() {

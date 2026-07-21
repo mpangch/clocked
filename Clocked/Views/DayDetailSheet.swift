@@ -189,6 +189,28 @@ struct DayDetailSheet: View {
                 .padding(.top, 14)
                 .padding(.bottom, 2)
 
+            if isLive {
+                // Forgot-to-clock-in fix: the live session's start is editable
+                // (backdate freely; never later than now − 5m, and never past
+                // the first segment's end once a break has started).
+                ExpandableStepperRow(
+                    label: "Clock in",
+                    sublabel: "forgot? backdate it here",
+                    value: Fmt.time(shift.clockIn),
+                    onMinus: { adjustClockIn(shift, direction: -1) },
+                    onPlus: { adjustClockIn(shift, direction: 1) },
+                    tag: WheelTag(id: shift.persistentModelID, isClockOut: false),
+                    expanded: $expandedWheel
+                ) {
+                    WheelDatePicker(
+                        mode: .dateAndTime,
+                        minuteInterval: 1,
+                        maximumDate: Engine.clockInLimit(firstSegmentEnd: segments.first?.end, clockOut: now),
+                        date: Binding(get: { shift.clockIn },
+                                      set: { setClockIn(shift, to: $0) })
+                    )
+                }
+            }
             if !isLive, let out = shift.clockOut {
                 ExpandableStepperRow(
                     label: "Clock in",

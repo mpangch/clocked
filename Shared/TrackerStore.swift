@@ -167,14 +167,17 @@ final class TrackerStore {
         setClockOut(shift, to: out.addingTimeInterval(Double(direction * Engine.editStepMinutes) * 60))
     }
 
-    /// Set the clock-in to an absolute time (wheel picker), clamped like the stepper.
-    func setClockIn(_ shift: Shift, to proposed: Date) {
-        guard isEditable(shift), shift.clockOut != nil else { return }
+    /// Set the clock-in to an absolute time (wheel picker), clamped like the
+    /// stepper. Works for the LIVE shift too — the forgot-to-clock-in fix:
+    /// with no clock-out yet, "now" bounds the clamp, so the clock-in can be
+    /// backdated freely but never pushed later than now − 5m.
+    func setClockIn(_ shift: Shift, to proposed: Date, now: Date = .now) {
+        guard isEditable(shift) else { return }
         let ordered = shift.orderedSegments
         guard let first = ordered.first else { return }
         let newIn = Engine.clampedClockIn(proposed: proposed,
                                           firstSegmentEnd: first.end,
-                                          clockOut: shift.clockOut!)
+                                          clockOut: shift.clockOut ?? now)
         shift.clockIn = newIn
         first.start = newIn
         persistAndNotify()

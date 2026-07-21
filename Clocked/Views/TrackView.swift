@@ -316,7 +316,13 @@ struct TrackView: View {
     private func chipRow(live: SessionSnapshot, liveShift: Shift?, now: Date) -> some View {
         let breakCount = Engine.breakCount(live)
         return FlowLayout(spacing: 8) {
-            ChipView(text: "In **\(Fmt.time(live.clockIn))**")
+            // Tappable: forgot to clock in on time → fix the start in day detail.
+            Button {
+                model.activeSheet = .dayDetail(TimeMath.startOfDay(live.clockIn))
+            } label: {
+                ChipView(text: "In **\(Fmt.time(live.clockIn))**")
+            }
+            .buttonStyle(.plain)
             ChipView(text: breakCount > 0
                 ? "Breaks **\(breakCount)** · **\(Fmt.dur(Engine.breakDuration(live, at: now)))**"
                 : "Breaks **\(breakCount)**")
