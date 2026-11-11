@@ -81,7 +81,7 @@ final class EditAndEntryTests: XCTestCase {
 
     func testManualEntryNoBreak() {
         let segs = Engine.manualEntrySegments(dayStart: date(2026, 7, 14),
-                                              draft: AddEntryDraft(dayOffset: -1, inMin: 660, outMin: 1080, breakMin: 0))
+                                              draft: AddEntryDraft(dayOffset: -1, inMin: 660, outMin: 1080, breakMin: 0), calendar: testCal)
         XCTAssertEqual(segs, [SegmentSnapshot(isBreak: false,
                                               start: date(2026, 7, 14, 11, 0),
                                               end: date(2026, 7, 14, 18, 0))])
@@ -90,7 +90,7 @@ final class EditAndEntryTests: XCTestCase {
     func testManualEntryCenteredBreak() {
         // Even split: 11:00–18:00, 60m break → offset round((420−60)/2) = 180 → 14:00–15:00.
         let segs = Engine.manualEntrySegments(dayStart: date(2026, 7, 14),
-                                              draft: AddEntryDraft(dayOffset: -1, inMin: 660, outMin: 1080, breakMin: 60))
+                                              draft: AddEntryDraft(dayOffset: -1, inMin: 660, outMin: 1080, breakMin: 60), calendar: testCal)
         XCTAssertEqual(segs.count, 3)
         XCTAssertEqual(segs[0], SegmentSnapshot(isBreak: false, start: date(2026, 7, 14, 11, 0), end: date(2026, 7, 14, 14, 0)))
         XCTAssertEqual(segs[1], SegmentSnapshot(isBreak: true, start: date(2026, 7, 14, 14, 0), end: date(2026, 7, 14, 15, 0)))
@@ -101,7 +101,7 @@ final class EditAndEntryTests: XCTestCase {
 
         // Odd split rounds like JS: 9:00–16:45, 60m break → offset round(405/2) = 203 → 12:23.
         let odd = Engine.manualEntrySegments(dayStart: date(2026, 7, 14),
-                                             draft: AddEntryDraft(dayOffset: -1, inMin: 540, outMin: 1005, breakMin: 60))
+                                             draft: AddEntryDraft(dayOffset: -1, inMin: 540, outMin: 1005, breakMin: 60), calendar: testCal)
         XCTAssertEqual(odd[1].start, date(2026, 7, 14, 12, 23))
         XCTAssertEqual(odd[1].end, date(2026, 7, 14, 13, 23))
         XCTAssertEqual(odd[0].end, odd[1].start)      // contiguous

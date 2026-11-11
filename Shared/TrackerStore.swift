@@ -124,6 +124,7 @@ final class TrackerStore {
               let open = openSegment(of: shift) else { return }
         open.end = date
         shift.segments.append(Segment(isBreak: true, start: date))
+        AppSettings.shared.clearAwayState()
         persistAndNotify()
     }
 
@@ -132,6 +133,7 @@ final class TrackerStore {
               let open = openSegment(of: shift) else { return }
         open.end = date
         shift.segments.append(Segment(isBreak: false, start: date))
+        AppSettings.shared.clearAwayState()
         persistAndNotify()
     }
 
@@ -239,7 +241,7 @@ final class TrackerStore {
     func addManualEntry(_ draft: AddEntryDraft, today: Date = .now, calendar: Calendar = .current) {
         let dayStart = TimeMath.addDays(TimeMath.startOfDay(today, calendar: calendar),
                                         draft.dayOffset, calendar: calendar)
-        let segs = Engine.manualEntrySegments(dayStart: dayStart, draft: draft)
+        let segs = Engine.manualEntrySegments(dayStart: dayStart, draft: draft, calendar: calendar)
         guard let first = segs.first, let last = segs.last, let out = last.end else { return }
         let shift = Shift(clockIn: first.start, clockOut: out)
         context.insert(shift)

@@ -34,8 +34,8 @@ struct AddEntrySheet: View {
 
     var body: some View {
         let date = TimeMath.addDays(TimeMath.startOfDay(.now), draft.dayOffset)
-        // Breaks are paid: paid hours = clock-out − clock-in, break included.
-        let paidMin = max(0, draft.outMin - draft.inMin)
+        let segments = Engine.manualEntrySegments(dayStart: date, draft: draft)
+        let paidSeconds = segments.reduce(0) { $0 + Engine.segDuration($1, at: date) }
 
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
@@ -120,7 +120,9 @@ struct AddEntrySheet: View {
                     ))
                 }
 
-                Text(.init("Paid hours: **\(Fmt.hm(paidMin))**"))
+                Text(.init(segments.isEmpty
+                           ? "Choose valid times at least 30 minutes apart, with at least 15 minutes outside the paid break."
+                           : "Paid hours: **\(Fmt.hm(Int(paidSeconds / 60)))**"))
                     .font(.system(size: 12.5))
                     .foregroundStyle(Theme.tertiary)
                     .frame(maxWidth: .infinity)
@@ -134,6 +136,7 @@ struct AddEntrySheet: View {
                         TrackerStore.shared.addManualEntry(draft)
                         dismiss()
                     }
+                    .disabled(segments.isEmpty)
                 }
                 .padding(.top, 12)
             }

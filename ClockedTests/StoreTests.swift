@@ -13,6 +13,28 @@ final class StoreTests: XCTestCase {
         shift.orderedSegments.filter { $0.end == nil }.count
     }
 
+    func testBreakAndResumeClearAwayEpisode() {
+        let settings = AppSettings.shared
+        let oldLeftAt = settings.leftWorkAt
+        let oldPrompted = settings.awayPrompted
+        defer {
+            settings.leftWorkAt = oldLeftAt
+            settings.awayPrompted = oldPrompted
+        }
+        let store = TrackerStore(inMemory: true)
+        store.clockIn(at: date(2026, 7, 15, 9))
+        settings.leftWorkAt = date(2026, 7, 15, 11)
+        settings.awayPrompted = true
+        store.startBreak(at: date(2026, 7, 15, 12))
+        XCTAssertNil(settings.leftWorkAt)
+        XCTAssertFalse(settings.awayPrompted)
+        settings.leftWorkAt = date(2026, 7, 15, 12, 5)
+        settings.awayPrompted = true
+        store.resumeWork(at: date(2026, 7, 15, 12, 30))
+        XCTAssertNil(settings.leftWorkAt)
+        XCTAssertFalse(settings.awayPrompted)
+    }
+
     func testClockInCreatesOpenWorkSegmentAndRecordsPlan() {
         let store = TrackerStore(inMemory: true)
         store.clockIn(at: date(2026, 7, 15, 9, 0),

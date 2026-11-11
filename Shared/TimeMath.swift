@@ -40,6 +40,17 @@ enum TimeMath {
         return c.hour! * 60 + c.minute!
     }
 
+    /// Interpret a clock reading in the selected day, not as elapsed seconds
+    /// after midnight. Reject nonexistent times during the spring DST jump.
+    static func wallClockTime(_ minutes: Int, on day: Date, calendar: Calendar = .current) -> Date? {
+        guard (0..<24 * 60).contains(minutes),
+              let result = calendar.date(bySettingHour: minutes / 60, minute: minutes % 60,
+                                         second: 0, of: day),
+              calendar.isDate(result, inSameDayAs: day),
+              minutesIntoDay(result, calendar: calendar) == minutes else { return nil }
+        return result
+    }
+
     /// First day of the month `offset` months away from the month containing d
     static func firstOfMonth(containing d: Date, offset: Int = 0, calendar: Calendar = .current) -> Date {
         let comps = calendar.dateComponents([.year, .month], from: d)

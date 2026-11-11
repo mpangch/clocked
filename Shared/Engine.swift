@@ -320,13 +320,16 @@ enum Engine {
     }
 
     /// mockup: saveAddEntry — break inserted as a single centered segment.
-    static func manualEntrySegments(dayStart: Date, draft: AddEntryDraft) -> [SegmentSnapshot] {
-        let inT = dayStart.addingTimeInterval(Double(draft.inMin) * 60)
-        let outT = dayStart.addingTimeInterval(Double(draft.outMin) * 60)
+    static func manualEntrySegments(dayStart: Date, draft: AddEntryDraft,
+                                    calendar: Calendar = .current) -> [SegmentSnapshot] {
+        guard let inT = TimeMath.wallClockTime(draft.inMin, on: dayStart, calendar: calendar),
+              let outT = TimeMath.wallClockTime(draft.outMin, on: dayStart, calendar: calendar) else { return [] }
+        let spanMin = Int(outT.timeIntervalSince(inT) / 60)
+        guard spanMin >= 30, draft.breakMin >= 0, draft.breakMin <= spanMin - 15 else { return [] }
         guard draft.breakMin > 0 else {
             return [SegmentSnapshot(isBreak: false, start: inT, end: outT)]
         }
-        let offMin = TimeMath.jsRound(Double(draft.outMin - draft.inMin - draft.breakMin) / 2)
+        let offMin = TimeMath.jsRound(Double(spanMin - draft.breakMin) / 2)
         let bs = inT.addingTimeInterval(Double(offMin) * 60)
         let be = bs.addingTimeInterval(Double(draft.breakMin) * 60)
         return [
@@ -472,7 +475,8 @@ enum Engine {
     /// - malformed rows are counted and skipped, never abort the import
     static func parseCSVBackup(_ text: String, calendar: Calendar = .current) -> CSVImportResult {
         var result = CSVImportResult()
-        let lines = text.split(whereSeparator: \.isNewline).map(String.init)
+        let lines = text.trimmingCharacters(in: CharacterSet(charactersIn: "\u{FEFF}"))
+            .split(whereSeparator: \.isNewline).map(String.init)
         guard let headerLine = lines.first else { return result }
         let header = headerLine.split(separator: ",", omittingEmptySubsequences: false)
             .map { $0.trimmingCharacters(in: .whitespaces).lowercased() }
@@ -486,8 +490,9 @@ enum Engine {
         let breakStartCol = header.firstIndex(of: "break_start")
 
         func minutes(_ field: String) -> Int? {
-            let parts = field.split(separator: ":")
-            guard parts.count == 2, let h = Int(parts[0]), let m = Int(parts[1]),
+            let parts = field.split(separator: ":", omittingEmptySubsequences: false)
+            guard parts.count == 2, parts.allSatisfy({ !$0.isEmpty && $0.allSatisfy(\.isNumber) }),
+                  let h = Int(parts[0]), let m = Int(parts[1]),
                   (0...23).contains(h), (0...59).contains(m) else { return nil }
             return h * 60 + m
         }
@@ -502,8 +507,12 @@ enum Engine {
             if fields[dateCol] == "total" { continue }
             if fields[outCol] == "(active)" { continue }
 
-            let dateParts = fields[dateCol].split(separator: "-").compactMap { Int($0) }
-            guard dateParts.count == 3,
+            let dateFields = fields[dateCol].split(separator: "-", omittingEmptySubsequences: false)
+            let dateParts = dateFields.compactMap { Int($0) }
+            guard dateFields.count == 3, dateParts.count == 3,
+                  dateFields.allSatisfy({ !$0.isEmpty && $0.allSatisfy(\.isNumber) }),
+                  (1...9999).contains(dateParts[0]), (1...12).contains(dateParts[1]),
+                  (1...31).contains(dateParts[2]),
                   let inMin = minutes(fields[inCol]),
                   let outMinRaw = minutes(fields[outCol]) else {
                 result.skippedRows += 1
@@ -511,14 +520,16 @@ enum Engine {
             }
             var comps = DateComponents()
             comps.year = dateParts[0]; comps.month = dateParts[1]; comps.day = dateParts[2]
-            guard let dayStart = calendar.date(from: comps) else {
+            guard let dayStart = calendar.date(from: comps),
+                  calendar.component(.year, from: dayStart) == dateParts[0],
+                  calendar.component(.month, from: dayStart) == dateParts[1],
+                  calendar.component(.day, from: dayStart) == dateParts[2] else {
                 result.skippedRows += 1
                 continue
             }
             func timeOn(_ minutesIntoDay: Int, dayOffset: Int = 0) -> Date? {
                 let day = TimeMath.addDays(dayStart, dayOffset, calendar: calendar)
-                return calendar.date(bySettingHour: minutesIntoDay / 60,
-                                     minute: minutesIntoDay % 60, second: 0, of: day)
+                return TimeMath.wallClockTime(minutesIntoDay, on: day, calendar: calendar)
             }
             let crossesMidnight = outMinRaw <= inMin
             guard let clockIn = timeOn(inMin),
@@ -537,13 +548,19 @@ enum Engine {
                 segments = [SegmentSnapshot(isBreak: false, start: clockIn, end: clockOut)]
             } else {
                 // Prefer the recorded break start when it fits; else center it.
-                var bsMin: Int? = breakStartCol
-                    .flatMap { $0 < fields.count ? minutes(fields[$0]) : nil }
-                    .map { $0 <= inMin && crossesMidnight ? $0 + 24 * 60 : $0 }
-                    .map { $0 - inMin }                     // offset from clock-in
-                if let off = bsMin, !(off >= 1 && off + breakMin <= spanMin - 1) { bsMin = nil }
-                let offset = bsMin ?? TimeMath.jsRound(Double(spanMin - breakMin) / 2)
-                let bs = clockIn.addingTimeInterval(Double(offset) * 60)
+                let recordedMinute = breakStartCol.flatMap { $0 < fields.count ? minutes(fields[$0]) : nil }
+                let recordedStart = recordedMinute.flatMap {
+                    timeOn($0, dayOffset: $0 <= inMin && crossesMidnight ? 1 : 0)
+                }
+                let centered = clockIn.addingTimeInterval(Double(TimeMath.jsRound(Double(spanMin - breakMin) / 2)) * 60)
+                let bs: Date
+                if let recordedStart,
+                   recordedStart >= clockIn.addingTimeInterval(60),
+                   recordedStart.addingTimeInterval(Double(breakMin + 1) * 60) <= clockOut {
+                    bs = recordedStart
+                } else {
+                    bs = centered
+                }
                 let be = bs.addingTimeInterval(Double(breakMin) * 60)
                 segments = [
                     SegmentSnapshot(isBreak: false, start: clockIn, end: bs),

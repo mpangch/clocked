@@ -330,7 +330,7 @@ struct TrackView: View {
                 let planBreaks = liveShift?.plannedBreakCount ?? 0
                 let planBreakMin = liveShift?.plannedBreakMinutes ?? 0
                 ChipView(text: planBreaks > 0
-                    ? "Plan **\(Fmt.hm(planWork))** + **\(Fmt.dur(Double(planBreakMin) * 60))** break"
+                    ? "Plan **\(Fmt.hm(planWork))** incl. **\(Fmt.dur(Double(planBreakMin) * 60))** paid break"
                     : "Plan **\(Fmt.hm(planWork))**")
             }
             if let leftAt = settings.leftWorkAt {

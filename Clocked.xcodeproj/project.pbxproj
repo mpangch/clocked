@@ -62,6 +62,7 @@
 		D1109E26D6C61437CB9E408F /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CD95A17ABAD0749C70E54B4 /* AppSettings.swift */; };
 		D9A9D4C530D7C2EF393D155C /* EtaAndGoalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36976D6965E3D0986511EA10 /* EtaAndGoalTests.swift */; };
 		DDD884E9F510AEDABE3A2718 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B814CBD2D5916A0EE7188618 /* Theme.swift */; };
+		E11F91731D85962DDD8A3039 /* CalendarMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D71E3E4E6945977EAAAD740 /* CalendarMigrationTests.swift */; };
 		E36464921187DC336A601DF9 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D3BDE637908135353289E5A /* Formatters.swift */; };
 		F6ED5298BC6CB81C49A3337B /* Snapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E52B70D325830AC0DF42230 /* Snapshot.swift */; };
 		FC53A53ECF635F95608E8B8D /* EditAndEntryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F3D697B877D803EF419E5DD /* EditAndEntryTests.swift */; };
@@ -106,6 +107,7 @@
 		0FEFB4038CAE64001CBCD875 /* TestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestSupport.swift; sourceTree = "<group>"; };
 		12AD01A093654ED75E901B80 /* AuditDefectRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuditDefectRegressionTests.swift; sourceTree = "<group>"; };
 		15D4A0C2AB4BE93A2717DD20 /* ClockedActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockedActivityAttributes.swift; sourceTree = "<group>"; };
+		1D71E3E4E6945977EAAAD740 /* CalendarMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarMigrationTests.swift; sourceTree = "<group>"; };
 		23D445F7AE6D802B7A830961 /* ClockedWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ClockedWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		35044D2F763F346CBB744FD7 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		36976D6965E3D0986511EA10 /* EtaAndGoalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EtaAndGoalTests.swift; sourceTree = "<group>"; };
@@ -163,6 +165,7 @@
 				0A8681EFFD06B766835019BF /* AuditRegressionTests.swift */,
 				39F4AC3605C84BD4051A8C9F /* BackupRoundTripTests.swift */,
 				61704C384B43CBB1E670261E /* BoundedFetchTests.swift */,
+				1D71E3E4E6945977EAAAD740 /* CalendarMigrationTests.swift */,
 				CD7F2F3F7164FEEAC69132A4 /* CSVTests.swift */,
 				9F3D697B877D803EF419E5DD /* EditAndEntryTests.swift */,
 				36976D6965E3D0986511EA10 /* EtaAndGoalTests.swift */,
@@ -446,6 +449,7 @@
 				6E8839B1D4992A82E489A8BC /* BackupRoundTripTests.swift in Sources */,
 				CEDE06974971D39934790180 /* BoundedFetchTests.swift in Sources */,
 				48B7246935C4C1D9E1124888 /* CSVTests.swift in Sources */,
+				E11F91731D85962DDD8A3039 /* CalendarMigrationTests.swift in Sources */,
 				FC53A53ECF635F95608E8B8D /* EditAndEntryTests.swift in Sources */,
 				D9A9D4C530D7C2EF393D155C /* EtaAndGoalTests.swift in Sources */,
 				0776FB0E9D944C3DBB844BDC /* PaidBreaksTests.swift in Sources */,

@@ -113,6 +113,10 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     // MARK: - Tracking changes
 
     private func handleTrackingDidChange() {
+        if AppSettings.shared.leftWorkAt == nil {
+            cancelAwayPrompt()
+            AppGroup.defaults.removeObject(forKey: pendingGeoOutSheetKey)
+        }
         if TrackerStore.shared.liveShift == nil {
             cancelAwayPrompt()
             cancelBreakNudge()
@@ -222,7 +226,7 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
               stats.breakFreq >= 0.5,
               let typ = stats.typBreakStartMin else { return }
 
-        let target = TimeMath.startOfDay(now).addingTimeInterval(Double(typ) * 60)
+        guard let target = TimeMath.wallClockTime(typ, on: now) else { return }
         let trigger: UNNotificationTrigger
         if target > now {
             let comps = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: target)
